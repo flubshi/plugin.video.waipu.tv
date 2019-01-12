@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<addon id="plugin.video.waipu.tv" name="Waipu-TV" version="0.0.7~alpha" provider-name="MiRo">
+<requires>
+  <import addon="xbmc.python" version="2.25.0"/>
+  <import addon="script.module.requests" version="2.12.4"/>
+  <import addon="script.module.inputstreamhelper" version="0.3.3"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="main.py">
+  <provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+  <summary lang="de">waipu.tv Kodi Video Plugin</summary>
+  <summary lang="en">waipu.tv Kodi Video Plugin</summary>
+  <description lang="en">An waipu.tv video plugin for Kodi mediacenter.</description>
+  <description lang="de">Genießen Sie 90 TV-Sender im Live-Stream</description>
+  <language></language>
+  <platform>all</platform>
+  <license>GNU GENERAL PUBLIC LICENSE. Version 3, June 2007</license>
+  <forum>https://www.kodinerds.net/index.php/Thread/54288-waipu-tv-Plugin-f%C3%BCr-Kodi/</forum>
+  <website>https://www.waipu.tv/</website>
+  <email></email>
+  <source>https://github.com/flubshi/plugin.video.waipu.tv</source>
+  <assets>
+    <icon>icon.png</icon>
+    <fanart>fanart.jpg</fanart>
+    <screenshot>resources/screenshots/screenshot-01.jpg</screenshot>
+  </assets>
+  <news>
+- 0.0.7 Changes from user realvito integrated
+- 0.0.6 Inputstreamhelper support
+- 0.0.5 Bugfix: base64decode padding
+- 0.0.4 Ask for login credentials; Add DRM channels (experimental)
+- 0.0.3 First implemantation of DRM (not working)
+- 0.0.2 Show Channel Logos
+- 0.0.1 Initial alpha version
+  </news>
+</extension>
+</addon>
