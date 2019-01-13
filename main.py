@@ -50,12 +50,12 @@ def get_default():
     xbmcplugin.setPluginCategory(_handle, 'waipu.tv')
 
     # TV channel list
-    list_item = xbmcgui.ListItem(label="Live TV")
+    list_item = xbmcgui.ListItem(label="Live TV", iconImage="DefaultAddonPVRClient.png")
     url = get_url(action='list-channels')
     xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
 
     # recordings list
-    list_item = xbmcgui.ListItem(label="Aufnahmen")
+    list_item = xbmcgui.ListItem(label="Aufnahmen", iconImage="DefaultFolder.png")
     url = get_url(action='list-recordings')
     xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
 
@@ -78,13 +78,34 @@ def list_recordings():
         return
     # Iterate through categories
     for recording in recordings:
-        list_item = xbmcgui.ListItem(label=recording['epgData']['title'])
-        list_item.setInfo('video', {'title': recording['epgData']['title'],
-                                    'genre': recording['epgData']['genre'],
-                                    #'tracknumber': channel_data['orderIndex'] + 1,
-                                    # 'plot': "Langinfo",
-                                    # 'tagline': "Tagline",
-                                    'mediatype': 'video'})
+        label_dat = ''
+        metadata = {
+            'genre': recording['epgData']['genre'],
+            'plot': recording['epgData']['description'],
+            'mediatype': 'video'}
+
+        if "episodeId" in recording['epgData'] and recording['epgData']['episodeId']:
+            # tv show
+            if recording['epgData']['episodeTitle']:
+                metadata.update({"tvshowtitle": recording['epgData']['episodeTitle']})
+                label_dat = "[B]" + recording['epgData']['title'] + "[/B] - " + recording['epgData']['episodeTitle']
+            else:
+                label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+            metadata.update({
+                'title': label_dat,
+                'season': recording['epgData']['season'],
+                'episode': recording['epgData']['episode'],
+                })
+        else:
+            # movie
+            label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+            metadata.update({
+                'title': label_dat
+                })
+
+        list_item = xbmcgui.ListItem(label=label_dat)
+        list_item.setInfo('video', metadata)
+
         for previewImage in recording['epgData']['previewImages']:
             previewImage += "?width=200&height=200"
             xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)

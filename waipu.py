@@ -50,8 +50,8 @@ class Waipu:
                 for link in channel['links']:
                     if (link['rel'] == 'liveImage'):
                         channel_data['thumbnail'] = link['href']
-                    if (link['rel'] == 'icon'):
-                        channel_data['icon'] = link['href'] + "?width=1000&height=1000"
+                    if (link['rel'] == 'iconsd'):
+                        channel_data['icon'] = link['href'] + "?width=200&height=200"
                 channel_data['displayName'] = channel['displayName']
                 channel_data['orderIndex'] = channel['orderIndex']
                 channels[channel['id']] = channel_data
