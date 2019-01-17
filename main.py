@@ -14,6 +14,8 @@ import xbmcaddon
 import base64
 import json
 import inputstreamhelper
+import time
+from dateutil import parser
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
@@ -133,38 +135,61 @@ def list_channels():
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
     # Iterate through categories
-    for channel, channel_data in channels.iteritems():
-        list_item = xbmcgui.ListItem(label=channel_data['displayName'])
-        list_item.setInfo('video', {'title': channel_data['displayName'],
-                                    #'genre': category,
-                                    'tracknumber' : channel_data['orderIndex']+1,
-                                    #'plot': "Langinfo",
-                                    #'tagline': "Tagline",
+    for data in channels:
+        channel = data["channel"]
+
+        if "programs" in data and len(data["programs"]) > 0:
+            epg_now = " | "+data["programs"][0]["title"]
+
+        plot = ""
+        b1 = "[B]"
+        b2 = "[/B]"
+        if "programs" in data:
+            for program in data["programs"]:
+                starttime = parser.parse(program["startTime"]).strftime("%H:%M")
+                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + program["title"] + b2 + "\n"
+                b1 = ""
+                b2 = ""
+
+        list_item = xbmcgui.ListItem(label="[B]"+channel['displayName']+"[/B]"+epg_now)
+        list_item.setInfo('video', {'title': "[B]"+channel['displayName']+"[/B]"+epg_now,
+                                    'tracknumber' : channel['orderIndex']+1,
+                                    'plot': plot,
                                     'mediatype': 'video'})
-        list_item.setArt({'thumb': channel_data['icon'], 'icon': channel_data['icon'], 'clearlogo': channel_data['icon']})
+        logo_url = ""
+        livePlayoutURL = ""
+        for link in channel["links"]:
+            if link["rel"] == "iconsd":
+                logo_url = link["href"]+ "?width=200&height=200"
+            if link["rel"] == "livePlayout":
+                livePlayoutURL = link["href"]
+
+        list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = get_url(action='play-channel', channel=channel)
+        url = get_url(action='play-channel', playouturl=livePlayoutURL)
         xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder = False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
 
-def play_channel(channel):
+def play_channel(playouturl):
 
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
 
     user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
-    print "Playing "+channel
     """
     Play a video by the provided path.
 
     :param path: Fully-qualified video URL
     :type path: str
     """
-    for stream in w.playChannel(channel)["streams"]:
+    channel = w.playChannel(playouturl)
+    xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
+
+    for stream in channel["streams"]:
         if (stream["protocol"] == 'mpeg-dash'):
         #if (stream["protocol"] == 'hls'):
             for link in stream['links']:
@@ -174,7 +199,7 @@ def play_channel(channel):
                     print path
                     break
 
-    listitem = xbmcgui.ListItem(channel, path=path)
+    listitem = xbmcgui.ListItem(channel["channel"], path=path)
     listitem.setMimeType('application/xml+dash')
     listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
@@ -239,7 +264,7 @@ def router(paramstring):
     params = dict(parse_qsl(paramstring))
     if params:
         if params['action'] == "play-channel":
-            play_channel(params['channel'])
+            play_channel(params['playouturl'])
         elif params['action'] == "list-channels":
             list_channels()
         elif params['action'] == "list-recordings":

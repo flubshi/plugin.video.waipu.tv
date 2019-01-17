@@ -8,7 +8,6 @@ class Waipu:
     def __init__(self, username, password):
         self._auth = None
         self.logged_in = False
-        self._channelData = None
         self.__username = username
         self.__password = password
 
@@ -37,25 +36,17 @@ class Waipu:
 
     def getChannels(self):
         self.getToken()
-        url = "https://epg.waipu.tv/api/channels"
+
+        starttime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime());
+        endtime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(time.time() + 3*60*60))
+
+        url = "https://epg.waipu.tv/api/programs?includeRunningAtStartTime=true&startTime="+starttime+"&stopTime="+endtime
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+                   'Accept': 'application/vnd.waipu.epg-channels-and-programs-v1+json',
                    'Authorization': 'Bearer ' + self._auth['access_token']}
-        r = requests.get(url, headers=headers)
-        if r.status_code == 200:
-            self._channelData = r.json()
-            # pprint (self._channelData)
-            channels = {}
-            for channel in self._channelData:
-                channel_data = {}
-                for link in channel['links']:
-                    if (link['rel'] == 'liveImage'):
-                        channel_data['thumbnail'] = link['href']
-                    if (link['rel'] == 'iconsd'):
-                        channel_data['icon'] = link['href'] + "?width=200&height=200"
-                channel_data['displayName'] = channel['displayName']
-                channel_data['orderIndex'] = channel['orderIndex']
-                channels[channel['id']] = channel_data
-            return channels
+
+        channels = requests.get(url, headers=headers)
+        return channels.json()
 
     def getRecordings(self):
         self.getToken()
@@ -90,21 +81,15 @@ class Waipu:
         if r.status_code == 200:
             pprint(r.json())
 
-    def playChannel(self, id):
-        if (self._channelData == None):
-            self.getChannels()
+    def playChannel(self, playouturl):
         self.getStatus()
         # self.homeCheck()
-        for channel in self._channelData:
-            if (channel['id'] == id):
-                for link in channel['links']:
-                    if (link['rel'] == 'livePlayout'):
-                        url = link['href']
-                        payload = {'network': 'wlan'}
-                        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
-                                   'Authorization': 'Bearer ' + self._auth['access_token']}
-                        r = requests.get(url, data=payload, headers=headers)
-                        return r.json()
+
+        payload = {'network': 'wlan'}
+        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+            'Authorization': 'Bearer ' + self._auth['access_token']}
+        r = requests.get(playouturl, data=payload, headers=headers)
+        return r.json()
 
     def playRecording(self, id):
         self.getToken()
