@@ -1,0 +1,47 @@
+# Kodi Media Center language file
+# Addon Name: Waipu.tv
+# Addon id: plugin.video.waipu.tv
+# Addon Provider: flubshi, MiRo
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#32001"
+msgid "Account"
+msgstr ""
+
+msgctxt "#32002"
+msgid "Mail"
+msgstr ""
+
+msgctxt "#32003"
+msgid "Password"
+msgstr ""
+
+msgctxt "#32004"
+msgid "Misc"
+msgstr ""
+
+msgctxt "#32005"
+msgid "Show current epg in channel name"
+msgstr ""
+
+msgctxt "#32006"
+msgid "Show epg in plot"
+msgstr ""
+
+msgctxt "#32006"
+msgid "EPG for next hours"
+msgstr ""
+
+msgctxt "#32030"
+msgid "Live TV"
+msgstr ""
+
+msgctxt "#32031"
+msgid "Recordings"
+msgstr "

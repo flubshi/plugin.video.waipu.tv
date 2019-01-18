@@ -28,17 +28,19 @@ class Waipu:
     def getToken(self):
         if (self._auth == None or self._auth["expires"] <= time.time()):
             code = self.fetchToken()
-            if (code != 200):
+            if code == 401:
+                raise Exception("Login: Invalid user/password!")
+            elif (code != 200):
                 raise Exception("Can't login, Code=" + str(code))
         # TODO: renew token
         # print(self._auth)
         return self._auth['access_token']
 
-    def getChannels(self):
+    def getChannels(self, epg_hours_future = 0):
         self.getToken()
 
         starttime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime());
-        endtime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(time.time() + 3*60*60))
+        endtime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(time.time() + int(epg_hours_future)*60*60))
 
         url = "https://epg.waipu.tv/api/programs?includeRunningAtStartTime=true&startTime="+starttime+"&stopTime="+endtime
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',

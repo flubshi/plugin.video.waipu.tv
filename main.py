@@ -27,9 +27,6 @@ password = xbmcplugin.getSetting(_handle, "password")
 # open settings, 
 if not username or not password:
     xbmcaddon.Addon().openSettings()
-    # TODO not working as expected
-    username = xbmcplugin.getSetting(_handle, "username")
-    password = xbmcplugin.getSetting(_handle, "password")
 
 w = Waipu(username, password)
 
@@ -45,6 +42,8 @@ def get_url(**kwargs):
     """
     return '{0}?{1}'.format(_url, urlencode(kwargs))
 
+def _T(id):
+    return xbmcaddon.Addon().getLocalizedString(id)
 
 def get_default():
     # Set plugin category. It is displayed in some skins as the name
@@ -52,12 +51,12 @@ def get_default():
     xbmcplugin.setPluginCategory(_handle, 'waipu.tv')
 
     # TV channel list
-    list_item = xbmcgui.ListItem(label="Live TV", iconImage="DefaultAddonPVRClient.png")
+    list_item = xbmcgui.ListItem(label=_T(32030), iconImage="DefaultAddonPVRClient.png")
     url = get_url(action='list-channels')
     xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
 
     # recordings list
-    list_item = xbmcgui.ListItem(label="Aufnahmen", iconImage="DefaultFolder.png")
+    list_item = xbmcgui.ListItem(label=_T(32031), iconImage="DefaultFolder.png")
     url = get_url(action='list-recordings')
     xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
 
@@ -129,8 +128,14 @@ def list_channels():
     # for this type of content.
     xbmcplugin.setContent(_handle, 'videos')
     # Get video categories
+    epg_in_channel = xbmcplugin.getSetting(_handle, "epg_in_channel") == "true"
+    epg_in_plot = xbmcplugin.getSetting(_handle, "epg_in_plot") == "true"
+    if epg_in_plot:
+        epg_hours_future = xbmcplugin.getSetting(_handle, "epg_hours_future")
+    else:
+        epg_hours_future = 0
     try:
-        channels = w.getChannels()
+        channels = w.getChannels(epg_hours_future)
     except Exception as e:
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
@@ -144,15 +149,23 @@ def list_channels():
         plot = ""
         b1 = "[B]"
         b2 = "[/B]"
-        if "programs" in data:
+        if epg_in_plot and "programs" in data:
             for program in data["programs"]:
                 starttime = parser.parse(program["startTime"]).strftime("%H:%M")
                 plot += "[B]" + starttime + " Uhr:[/B] " + b1 + program["title"] + b2 + "\n"
                 b1 = ""
                 b2 = ""
+        elif not epg_in_plot and "programs" in data and len(data["programs"]) > 0:
+            plot = data["programs"][0]["description"]
 
-        list_item = xbmcgui.ListItem(label="[B]"+channel['displayName']+"[/B]"+epg_now)
-        list_item.setInfo('video', {'title': "[B]"+channel['displayName']+"[/B]"+epg_now,
+        if epg_in_channel:
+            title = "[B]"+channel['displayName']+"[/B]"+epg_now
+        else:
+            title = channel['displayName']
+
+
+        list_item = xbmcgui.ListItem(label=title)
+        list_item.setInfo('video', {'title': title,
                                     'tracknumber' : channel['orderIndex']+1,
                                     'plot': plot,
                                     'mediatype': 'video'})
@@ -225,13 +238,7 @@ def play_recording(recordingid):
         return False
 
     user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
-    print "Playing "+recordingid
-    """
-    Play a video by the provided path.
 
-    :param path: Fully-qualified video URL
-    :type path: str
-    """
     streamingData = w.playRecording(recordingid)
     for stream in streamingData["streamingDetails"]["streams"]:
         if (stream["protocol"] == 'MPEG_DASH'):

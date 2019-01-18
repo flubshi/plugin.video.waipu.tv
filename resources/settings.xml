@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="32001">
-        <setting label="Username" type="text"   id="username" default=""/>
-        <setting label="Password" type="text"   id="password" option="hidden"  default=""/>
-        <setting type="sep"/>
-        <setting id="debug" type="bool" label="Debug" default="false"/>
+        <setting label="32002" type="text" id="username" default=""/>
+        <setting label="32003" type="text" id="password" option="hidden"  default=""/>
+    </category>
+    <category label="32004">
+        <setting id="epg_in_channel" type="bool" label="32005" default="true"/>
+        <setting id="epg_in_plot" type="bool" label="32006" default="true"/>
+        <setting id="epg_hours_future" label="32007" type="slider" default="3" range="1,5"/>
     </category>
 </settings>
