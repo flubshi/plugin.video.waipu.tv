@@ -8,7 +8,7 @@ It was initially created by [mi-ro](https://www.kodinerds.net/index.php/Thread/5
 # **Links:**
 
 * [Waipu](https://www.waipu.tv/)
-* [Support thread](https://www.kodinerds.net/index.php/Thread/54288-waipu-tv-Plugin-f%C3%BCr-Kodi/?pageNo=1)
+* [Support thread](https://www.kodinerds.net/index.php/Thread/64586-PreRelease-Video-Plugin-Waipu-tv/)
 
 
 # **Contributors**
