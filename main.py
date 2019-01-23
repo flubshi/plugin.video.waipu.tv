@@ -161,7 +161,7 @@ def list_channels():
         if epg_in_channel:
             title = "[B]"+channel['displayName']+"[/B]"+epg_now
         else:
-            title = channel['displayName']
+            title = "[B]"+channel['displayName']+"[/B]"
 
 
         list_item = xbmcgui.ListItem(label=title)

@@ -15,33 +15,33 @@ msgid "Account"
 msgstr ""
 
 msgctxt "#32002"
-msgid "E-Mail"
+msgid "Mail"
 msgstr ""
 
 msgctxt "#32003"
-msgid "Passwort"
+msgid "Password"
 msgstr ""
 
 msgctxt "#32004"
-msgid "Sonstiges"
+msgid "Misc"
 msgstr ""
 
 msgctxt "#32005"
-msgid "Zeige aktuellen EPG Eintrag im Kanalnamen"
+msgid "Show current epg in channel name"
 msgstr ""
 
 msgctxt "#32006"
-msgid "Zeige EPG in Plot"
+msgid "Show epg in plot"
 msgstr ""
 
-msgctxt "#32007"
-msgid "EPG für die nächsten Stunden"
+msgctxt "#32006"
+msgid "EPG for next hours"
 msgstr ""
 
 msgctxt "#32030"
 msgid "Live TV"
-msgstr "
+msgstr ""
 
 msgctxt "#32031"
-msgid "Aufnahmen"
+msgid "Recordings"
 msgstr "
