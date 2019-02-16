@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import requests
 import time
 
@@ -17,7 +15,6 @@ class Waipu:
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
                    'Authorization': 'Basic YW5kcm9pZENsaWVudDpzdXBlclNlY3JldA=='}
         self._auth = None
-        self.logged_in = False
         r = requests.post(url, data=payload, headers=headers)
         if r.status_code == 200:
             self._auth = r.json()
@@ -26,14 +23,13 @@ class Waipu:
         return r.status_code
 
     def getToken(self):
-        if (self._auth == None or self._auth["expires"] <= time.time()):
+        if self._auth is None or self._auth["expires"] <= time.time():
             code = self.fetchToken()
             if code == 401:
                 raise Exception("Login: Invalid user/password!")
-            elif (code != 200):
+            elif code != 200:
                 raise Exception("Can't login, Code=" + str(code))
         # TODO: renew token
-        # print(self._auth)
         return self._auth['access_token']
 
     def getChannels(self, epg_hours_future = 0):
@@ -70,7 +66,7 @@ class Waipu:
         r = requests.get(url, headers=headers)
 
     def playChannel(self, playouturl):
-        #self.getStatus()
+        self.getToken()
 
         payload = {'network': 'wlan'}
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
