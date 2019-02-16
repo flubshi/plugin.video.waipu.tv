@@ -34,7 +34,7 @@ msgctxt "#32006"
 msgid "Show epg in plot"
 msgstr ""
 
-msgctxt "#32006"
+msgctxt "#32007"
 msgid "EPG for next hours"
 msgstr ""
 
