@@ -202,15 +202,22 @@ def play_channel(playouturl):
     channel = w.playChannel(playouturl)
     xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
 
+    stream_select = xbmcplugin.getSetting(_handle, "stream_select")
+    xbmc.log("stream to be played: " + str(stream_select), level=xbmc.LOGDEBUG)
+
     for stream in channel["streams"]:
         if (stream["protocol"] == 'mpeg-dash'):
         #if (stream["protocol"] == 'hls'):
             for link in stream['links']:
                 path=link["href"]
-                if path:
+                rel=link["rel"]
+                if path and (stream_select == "auto" or rel == stream_select):
                     path=path+"|User-Agent="+user_agent
-                    print path
+                    xbmc.log("selected stream: " + str(link), level=xbmc.LOGDEBUG)
                     break
+    if not path:
+        xbmc.executebuiltin('Notification("Stream selection","No stream of type \''+str(stream_select)+'\' found",10000)')
+        return
 
     listitem = xbmcgui.ListItem(channel["channel"], path=path)
     listitem.setMimeType('application/xml+dash')
@@ -240,6 +247,8 @@ def play_recording(recordingid):
     user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
 
     streamingData = w.playRecording(recordingid)
+    xbmc.log("play recording: " + str(streamingData), level=xbmc.LOGDEBUG)
+
     for stream in streamingData["streamingDetails"]["streams"]:
         if (stream["protocol"] == 'MPEG_DASH'):
                 path=stream["href"]

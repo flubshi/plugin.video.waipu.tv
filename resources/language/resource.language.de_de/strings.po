@@ -38,6 +38,10 @@ msgctxt "#32007"
 msgid "EPG for next hours"
 msgstr "EPG für die nächsten Stunden"
 
+msgctxt "#32008"
+msgid "Stream to play"
+msgstr "Abzuspielender Stream"
+
 msgctxt "#32030"
 msgid "Live TV"
 msgstr "Live TV"
