@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.1.0~alpha" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.1.1~alpha" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -29,7 +29,8 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
-- 0.1.0  Fix strings/translations; add stream type selection
+- 0.1.1 Fix: settings option for slider (int)
+- 0.1.0 Fix strings/translations; add stream type selection
 - 0.0.12 Add settings, language support
 - 0.0.11 fix: script.module.dateutil dependency
 - 0.0.10 Add simple epg
