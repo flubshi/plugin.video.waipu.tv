@@ -282,7 +282,7 @@ def play_recording(recordingid):
                 path=stream["href"]
                 if path:
                     path=path+"|User-Agent="+user_agent
-                    print path
+                    # print(path)
                     break
 
     listitem = xbmcgui.ListItem(streamingData["epgData"]["title"], path=path)
