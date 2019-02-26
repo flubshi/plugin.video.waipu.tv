@@ -224,6 +224,8 @@ def play_channel(playouturl):
     listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
     listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+    # License update, to be tested...
+    # listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url", get_url(action='renew_token', playouturl=playouturl))
 
     # Prepare for drm keys
     jwtheader,jwtpayload,jwtsignature = w.getToken().split(".")
@@ -237,6 +239,32 @@ def play_channel(playouturl):
     listitem.setProperty(is_helper.inputstream_addon + '.license_key', "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent="+user_agent+"&Content-Type=text%2Fxml&x-dt-custom-data="+license_str+"|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
+
+def renew_token(playouturl):
+    #user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+    channel = w.playChannel(playouturl)
+    xbmc.log("renew channel token: " + str(channel), level=xbmc.LOGDEBUG)
+
+    stream_select = xbmcplugin.getSetting(_handle, "stream_select")
+    xbmc.log("stream to be renewed: " + str(stream_select), level=xbmc.LOGDEBUG)
+
+    url = ""
+    for stream in channel["streams"]:
+        if (stream["protocol"] == 'mpeg-dash'):
+        #if (stream["protocol"] == 'hls'):
+            for link in stream['links']:
+                path=link["href"]
+                rel=link["rel"]
+                if path and (stream_select == "auto" or rel == stream_select):
+                    #path=path+"|User-Agent="+user_agent
+                    url = path
+                    xbmc.log("selected renew stream: " + str(link), level=xbmc.LOGDEBUG)
+                    break
+    xbmc.executebuiltin(
+        'Notification("Stream RENEW","tada",30000)')
+    listitem = xbmcgui.ListItem()
+    xbmcplugin.addDirectoryItem(_handle, url, listitem)
+    xbmcplugin.endOfDirectory(_handle, cacheToDisc=False)
 
 def play_recording(recordingid):
 
@@ -287,6 +315,8 @@ def router(paramstring):
             list_recordings()
         elif params['action'] == "play-recording":
             play_recording(params['recordingid'])
+        elif params['action'] == "renew_token":
+            renew_token(params['playouturl'])
         else:
             # If the provided paramstring does not contain a supported action
             # we raise an exception. This helps to catch coding errors,
