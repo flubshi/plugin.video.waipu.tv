@@ -11,8 +11,6 @@ from waipu import Waipu
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
-import base64
-import json
 import inputstreamhelper
 import time
 from dateutil import parser
@@ -227,15 +225,7 @@ def play_channel(playouturl):
     # License update, to be tested...
     # listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url", get_url(action='renew_token', playouturl=playouturl))
 
-    # Prepare for drm keys
-    jwtheader,jwtpayload,jwtsignature = w.getToken().split(".")
-    xbmc.log("waipu jwt payload: "+jwtpayload, level=xbmc.LOGDEBUG)
-    jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
-    jwt_json = json.loads(jwtpayload_decoded)
-    xbmc.log("waipu userhandle: "+jwt_json["userHandle"], level=xbmc.LOGDEBUG)
-    license = {'merchant' : 'exaring', 'sessionId' : 'default', 'userId' : jwt_json["userHandle"]}
-    license_str=base64.b64encode(json.dumps(license))
-    xbmc.log("waipu license: "+license_str, level=xbmc.LOGDEBUG)
+    license_str = w.getLicense()
     listitem.setProperty(is_helper.inputstream_addon + '.license_key', "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent="+user_agent+"&Content-Type=text%2Fxml&x-dt-custom-data="+license_str+"|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
@@ -291,15 +281,7 @@ def play_recording(recordingid):
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
     listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
 
-    # Prepare for drm keys
-    jwtheader,jwtpayload,jwtsignature = w.getToken().split(".")
-    xbmc.log("waipu jwt payload: "+jwtpayload, level=xbmc.LOGDEBUG)
-    jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
-    jwt_json = json.loads(jwtpayload_decoded)
-    xbmc.log("waipu userhandle: "+jwt_json["userHandle"], level=xbmc.LOGDEBUG)
-    license = {'merchant' : 'exaring', 'sessionId' : 'default', 'userId' : jwt_json["userHandle"]}
-    license_str=base64.b64encode(json.dumps(license))
-    xbmc.log("waipu license: "+license_str, level=xbmc.LOGDEBUG)
+    license_str = w.getLicense()
     listitem.setProperty(is_helper.inputstream_addon + '.license_key', "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent="+user_agent+"&Content-Type=text%2Fxml&x-dt-custom-data="+license_str+"|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)

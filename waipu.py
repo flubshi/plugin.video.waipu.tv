@@ -1,5 +1,7 @@
 import requests
 import time
+import base64
+import json
 
 
 class Waipu:
@@ -31,6 +33,15 @@ class Waipu:
                 raise Exception("Can't login, Code=" + str(code))
         # TODO: renew token
         return self._auth['access_token']
+
+    def getLicense(self):
+        # Prepare for drm keys
+        jwtheader, jwtpayload, jwtsignature = self.getToken().split(".")
+        jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
+        jwt_json = json.loads(jwtpayload_decoded)
+        license = {'merchant': 'exaring', 'sessionId': 'default', 'userId': jwt_json["userHandle"]}
+        license_str = base64.b64encode(json.dumps(license))
+        return license_str
 
     def getChannels(self, epg_hours_future = 0):
         self.getToken()
