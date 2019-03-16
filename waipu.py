@@ -43,6 +43,17 @@ class Waipu:
         license_str = base64.b64encode(json.dumps(license))
         return license_str
 
+    def getAccountChannels(self):
+        jwtheader, jwtpayload, jwtsignature = self.getToken().split(".")
+        jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
+        jwt_json = json.loads(jwtpayload_decoded)
+
+        acc_channels = []
+        acc_channels += jwt_json["userAssets"]["channels"]["SD"]
+        acc_channels += jwt_json["userAssets"]["channels"]["HD"]
+        return acc_channels
+
+
     def getChannels(self, epg_hours_future = 0):
         self.getToken()
 
@@ -53,9 +64,13 @@ class Waipu:
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
                    'Accept': 'application/vnd.waipu.epg-channels-and-programs-v1+json',
                    'Authorization': 'Bearer ' + self._auth['access_token']}
-
-        channels = requests.get(url, headers=headers)
-        return channels.json()
+        acc_channels = self.getAccountChannels()
+        channels_data = requests.get(url, headers=headers).json()
+        channels = []
+        for channel in channels_data:
+            if channel["channel"]["id"] in acc_channels:
+                channels.append(channel)
+        return channels
 
     def getRecordings(self):
         self.getToken()
