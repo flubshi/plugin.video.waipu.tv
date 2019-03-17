@@ -142,7 +142,7 @@ def list_channels():
         channel = data["channel"]
 
         if "programs" in data and len(data["programs"]) > 0:
-            epg_now = " | "+data["programs"][0]["title"]
+            epg_now = " | "+data["programs"][0]["title"].encode('ascii', 'ignore').decode('ascii')
 
         plot = ""
         b1 = "[B]"
@@ -150,7 +150,7 @@ def list_channels():
         if epg_in_plot and "programs" in data:
             for program in data["programs"]:
                 starttime = parser.parse(program["startTime"]).strftime("%H:%M")
-                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + program["title"] + b2 + "\n"
+                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + program["title"].encode('ascii', 'ignore').decode('ascii') + b2 + "\n"
                 b1 = ""
                 b2 = ""
         elif not epg_in_plot and "programs" in data and len(data["programs"]) > 0:
