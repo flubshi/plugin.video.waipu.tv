@@ -91,6 +91,14 @@ class Waipu:
         headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)'}
         r = requests.get(url, headers=headers)
 
+    def getCurrentProgram(self, channelId):
+        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+                   'Authorization': 'Bearer ' + self._auth['access_token'],
+                   'Accept': 'application/vnd.waipu.epg-program-v1+json'}
+        url = "https://epg.waipu.tv/api/channels/"+channelId+"/programs/current"
+        r = requests.get(url, headers=headers)
+        return r.json()
+
     def playChannel(self, playouturl):
         self.getToken()
 

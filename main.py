@@ -177,14 +177,15 @@ def list_channels():
 
         list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = get_url(action='play-channel', playouturl=livePlayoutURL)
+        url = get_url(action='play-channel', playouturl=livePlayoutURL, title=title.encode('ascii', 'ignore').decode('ascii'), logourl=logo_url)
         xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder = False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
 
-def play_channel(playouturl):
+
+def play_channel(playouturl, title, logo_url):
 
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
@@ -218,6 +219,16 @@ def play_channel(playouturl):
         return
 
     listitem = xbmcgui.ListItem(channel["channel"], path=path)
+    listitem.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
+
+    metadata = {'title': title, 'mediatype': 'video'}
+
+    if xbmcplugin.getSetting(_handle, "metadata_on_play") == "true":
+        current_program = w.getCurrentProgram(channel["channel"])
+        xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
+        metadata.update({'plot': "[B]"+current_program["title"]+"[/B]\n"+current_program["description"]})
+
+    listitem.setInfo('video', metadata)
     listitem.setMimeType('application/xml+dash')
     listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
@@ -290,7 +301,7 @@ def router(paramstring):
     params = dict(parse_qsl(paramstring))
     if params:
         if params['action'] == "play-channel":
-            play_channel(params['playouturl'])
+            play_channel(params['playouturl'], params['title'], params['logourl'])
         elif params['action'] == "list-channels":
             list_channels()
         elif params['action'] == "list-recordings":

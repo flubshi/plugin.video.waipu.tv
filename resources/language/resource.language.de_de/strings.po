@@ -42,6 +42,10 @@ msgctxt "#32008"
 msgid "Stream to play"
 msgstr "Abzuspielender Stream"
 
+msgctxt "#32009"
+msgid "Fetch metadata on channel start"
+msgstr "Hole Metadaten bei Kanal-Start"
+
 msgctxt "#32030"
 msgid "Live TV"
 msgstr "Live TV"
