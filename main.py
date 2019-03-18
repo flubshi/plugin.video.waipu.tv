@@ -226,7 +226,13 @@ def play_channel(playouturl, title, logo_url):
     if xbmcplugin.getSetting(_handle, "metadata_on_play") == "true":
         current_program = w.getCurrentProgram(channel["channel"])
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
-        metadata.update({'plot': "[B]"+current_program["title"]+"[/B]\n"+current_program["description"]})
+
+        description = ""
+        if "title" in current_program and current_program["title"] is not None:
+            description = "[B]" + current_program["title"] + "[/B]\n"
+        if "description" in current_program and current_program["description"] is not None:
+            description += current_program["description"]
+        metadata.update({'plot': description})
 
     listitem.setInfo('video', metadata)
     listitem.setMimeType('application/xml+dash')
