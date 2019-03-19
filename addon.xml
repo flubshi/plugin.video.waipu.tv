@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.1.3~alpha" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.0" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.26.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -12,8 +12,8 @@
 <extension point="xbmc.addon.metadata">
   <summary lang="de">waipu.tv Kodi Video Plugin</summary>
   <summary lang="en">waipu.tv Kodi Video Plugin</summary>
-  <description lang="en">An waipu.tv video plugin for Kodi mediacenter.</description>
-  <description lang="de">Genießen Sie 90 TV-Sender im Live-Stream</description>
+  <description lang="en">An waipu.tv video plugin for Kodi mediacenter. Note: This is not an official waipu plugin and not related to Exaring AG or waipu.tv. It was developed by volunteers.</description>
+  <description lang="de">Genießen Sie 90 TV-Sender im Live-Stream. Hinweis: Dies ist kein offizielles Waipu-Plugin und steht nicht in Verbindung zur Exaring AG oder zu waipu.tv. Es wurde von Freiwilligen entwickelt.</description>
   <language></language>
   <platform>all</platform>
   <license>GNU GENERAL PUBLIC LICENSE. Version 3, June 2007</license>
@@ -29,6 +29,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.2.0 Add options to remove pictograms, update disclaimer, change user_agent
 - 0.1.3 Provide metadata on channel playback
 - 0.1.2 Show only channels an account can play; code cleanup
 - 0.1.1 Fix: settings option for slider (int)
