@@ -5,6 +5,8 @@ import json
 
 
 class Waipu:
+    user_agent = "kodi plugin for waipu.tv (python)"
+
     def __init__(self, username, password):
         self._auth = None
         self.logged_in = False
@@ -14,7 +16,7 @@ class Waipu:
     def fetchToken(self):
         url = "https://auth.waipu.tv/oauth/token"
         payload = {'username': self.__username, 'password': self.__password, 'grant_type': 'password'}
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Basic YW5kcm9pZENsaWVudDpzdXBlclNlY3JldA=='}
         self._auth = None
         r = requests.post(url, data=payload, headers=headers)
@@ -61,7 +63,7 @@ class Waipu:
         endtime = time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(time.time() + int(epg_hours_future)*60*60))
 
         url = "https://epg.waipu.tv/api/programs?includeRunningAtStartTime=true&startTime="+starttime+"&stopTime="+endtime
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
                    'Accept': 'application/vnd.waipu.epg-channels-and-programs-v1+json',
                    'Authorization': 'Bearer ' + self._auth['access_token']}
         acc_channels = self.getAccountChannels()
@@ -75,7 +77,7 @@ class Waipu:
     def getRecordings(self):
         self.getToken()
         url = "https://recording.waipu.tv/api/recordings"
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Bearer ' + self._auth['access_token']}
         r = requests.get(url, headers=headers)
         recordings = []
@@ -88,11 +90,11 @@ class Waipu:
     def getStatus(self):
         self.getToken()
         url = "https://status.wpstr.tv/status?nw=wifi"
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)'}
+        headers = {'User-Agent': self.user_agent}
         r = requests.get(url, headers=headers)
 
     def getCurrentProgram(self, channelId):
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Bearer ' + self._auth['access_token'],
                    'Accept': 'application/vnd.waipu.epg-program-v1+json'}
         url = "https://epg.waipu.tv/api/channels/"+channelId+"/programs/current"
@@ -103,7 +105,7 @@ class Waipu:
         self.getToken()
 
         payload = {'network': 'wlan'}
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
             'Authorization': 'Bearer ' + self._auth['access_token']}
         r = requests.get(playouturl, data=payload, headers=headers)
         return r.json()
@@ -112,7 +114,7 @@ class Waipu:
         self.getToken()
         url = "https://recording.waipu.tv/api/recordings/" + str(id)
         payload = {'network': 'wlan'}
-        headers = {'User-Agent': 'waipu-2.29.2-c0f220b-9446 (Android 8.1.0)',
+        headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Bearer ' + self._auth['access_token']}
         r = requests.get(url, data=payload, headers=headers)
         return r.json()

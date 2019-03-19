@@ -195,7 +195,7 @@ def play_channel(playouturl, title, logo_url):
     if not is_helper.check_inputstream():
         return False
 
-    user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+    user_agent = "kodi plugin for waipu.tv (python)"
     """
     Play a video by the provided path.
 
@@ -283,7 +283,7 @@ def play_recording(recordingid):
     if not is_helper.check_inputstream():
         return False
 
-    user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+    user_agent = "kodi plugin for waipu.tv (python)"
 
     streamingData = w.playRecording(recordingid)
     xbmc.log("play recording: " + str(streamingData), level=xbmc.LOGDEBUG)
