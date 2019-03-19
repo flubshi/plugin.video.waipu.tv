@@ -137,12 +137,16 @@ def list_channels():
     except Exception as e:
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
+
+    filter_pictograms = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
     # Iterate through categories
     for data in channels:
         channel = data["channel"]
 
         if "programs" in data and len(data["programs"]) > 0:
-            epg_now = " | "+data["programs"][0]["title"].encode('ascii', 'ignore').decode('ascii')
+            epg_now = " | "+data["programs"][0]["title"]
+            if filter_pictograms:
+                epg_now = ''.join(c for c in epg_now if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
 
         plot = ""
         b1 = "[B]"

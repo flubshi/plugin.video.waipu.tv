@@ -46,6 +46,10 @@ msgctxt "#32009"
 msgid "Fetch metadata on channel start"
 msgstr "Hole Metadaten bei Kanal-Start"
 
+msgctxt "#32010"
+msgid "Filter pictograms in titles"
+msgstr "Piktogramme in Titel filtern"
+
 msgctxt "#32030"
 msgid "Live TV"
 msgstr "Live TV"
