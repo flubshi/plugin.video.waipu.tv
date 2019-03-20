@@ -29,7 +29,7 @@ if not username or not password:
 w = Waipu(username, password)
 
 
-def get_url(**kwargs):    
+def get_url(**kwargs):
     """
     Create a URL for calling the plugin recursively from the given set of keyword arguments.
 
@@ -40,8 +40,10 @@ def get_url(**kwargs):
     """
     return '{0}?{1}'.format(_url, urlencode(kwargs))
 
+
 def _T(id):
     return xbmcaddon.Addon().getLocalizedString(id)
+
 
 def get_default():
     # Set plugin category. It is displayed in some skins as the name
@@ -94,13 +96,13 @@ def list_recordings():
                 'title': label_dat,
                 'season': recording['epgData']['season'],
                 'episode': recording['epgData']['episode'],
-                })
+            })
         else:
             # movie
             label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
             metadata.update({
                 'title': label_dat
-                })
+            })
 
         list_item = xbmcgui.ListItem(label=label_dat)
         list_item.setInfo('video', metadata)
@@ -109,13 +111,19 @@ def list_recordings():
             previewImage += "?width=200&height=200"
             xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
             list_item.setArt(
-            {'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
+                {'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
             break
         list_item.setProperty('IsPlayable', 'true')
         url = get_url(action='play-recording', recordingid=recording["id"])
         xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=False)
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
+
+
+def filter_pictograms(data, filter=True):
+    if filter:
+        return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
+    return data
 
 
 def list_channels():
@@ -138,15 +146,13 @@ def list_channels():
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
 
-    filter_pictograms = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
+    b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
     # Iterate through categories
     for data in channels:
         channel = data["channel"]
 
         if "programs" in data and len(data["programs"]) > 0:
-            epg_now = " | "+data["programs"][0]["title"]
-            if filter_pictograms:
-                epg_now = ''.join(c for c in epg_now if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
+            epg_now = " | " + filter_pictograms(data["programs"][0]["title"], b_filter)
 
         plot = ""
         b1 = "[B]"
@@ -154,35 +160,36 @@ def list_channels():
         if epg_in_plot and "programs" in data:
             for program in data["programs"]:
                 starttime = parser.parse(program["startTime"]).strftime("%H:%M")
-                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + program["title"].encode('ascii', 'ignore').decode('ascii') + b2 + "\n"
+                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + filter_pictograms(program["title"],
+                                                                                  b_filter) + b2 + "\n"
                 b1 = ""
                 b2 = ""
         elif not epg_in_plot and "programs" in data and len(data["programs"]) > 0:
-            plot = data["programs"][0]["description"]
+            plot = filter_pictograms(data["programs"][0]["description"], b_filter)
 
         if epg_in_channel:
-            title = "[B]"+channel['displayName']+"[/B]"+epg_now
+            title = "[B]" + channel['displayName'] + "[/B]" + epg_now
         else:
-            title = "[B]"+channel['displayName']+"[/B]"
-
+            title = "[B]" + channel['displayName'] + "[/B]"
 
         list_item = xbmcgui.ListItem(label=title)
         list_item.setInfo('video', {'title': title,
-                                    'tracknumber' : channel['orderIndex']+1,
+                                    'tracknumber': channel['orderIndex'] + 1,
                                     'plot': plot,
                                     'mediatype': 'video'})
         logo_url = ""
         livePlayoutURL = ""
         for link in channel["links"]:
             if link["rel"] == "iconsd":
-                logo_url = link["href"]+ "?width=200&height=200"
+                logo_url = link["href"] + "?width=200&height=200"
             if link["rel"] == "livePlayout":
                 livePlayoutURL = link["href"]
 
         list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = get_url(action='play-channel', playouturl=livePlayoutURL, title=title.encode('ascii', 'ignore').decode('ascii'), logourl=logo_url)
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder = False)
+        url = get_url(action='play-channel', playouturl=livePlayoutURL,
+                      title=title.encode('ascii', 'ignore').decode('ascii'), logourl=logo_url)
+        xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     # Finish creating a virtual folder.
@@ -190,7 +197,6 @@ def list_channels():
 
 
 def play_channel(playouturl, title, logo_url):
-
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
@@ -210,16 +216,17 @@ def play_channel(playouturl, title, logo_url):
 
     for stream in channel["streams"]:
         if (stream["protocol"] == 'mpeg-dash'):
-        #if (stream["protocol"] == 'hls'):
+            # if (stream["protocol"] == 'hls'):
             for link in stream['links']:
-                path=link["href"]
-                rel=link["rel"]
+                path = link["href"]
+                rel = link["rel"]
                 if path and (stream_select == "auto" or rel == stream_select):
-                    path=path+"|User-Agent="+user_agent
+                    path = path + "|User-Agent=" + user_agent
                     xbmc.log("selected stream: " + str(link), level=xbmc.LOGDEBUG)
                     break
     if not path:
-        xbmc.executebuiltin('Notification("Stream selection","No stream of type \''+str(stream_select)+'\' found",10000)')
+        xbmc.executebuiltin(
+            'Notification("Stream selection","No stream of type \'' + str(stream_select) + '\' found",10000)')
         return
 
     listitem = xbmcgui.ListItem(channel["channel"], path=path)
@@ -231,11 +238,14 @@ def play_channel(playouturl, title, logo_url):
         current_program = w.getCurrentProgram(channel["channel"])
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
 
+        b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
+
         description = ""
         if "title" in current_program and current_program["title"] is not None:
-            description = "[B]" + current_program["title"] + "[/B]\n"
+            description = "[B]" + filter_pictograms(current_program["title"], b_filter) + "[/B]\n"
+            metadata.update({'title': filter_pictograms(current_program["title"], b_filter)})
         if "description" in current_program and current_program["description"] is not None:
-            description += current_program["description"]
+            description += filter_pictograms(current_program["description"], b_filter)
         metadata.update({'plot': description})
 
     listitem.setInfo('video', metadata)
@@ -247,12 +257,14 @@ def play_channel(playouturl, title, logo_url):
     # listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url", get_url(action='renew_token', playouturl=playouturl))
 
     license_str = w.getLicense()
-    listitem.setProperty(is_helper.inputstream_addon + '.license_key', "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent="+user_agent+"&Content-Type=text%2Fxml&x-dt-custom-data="+license_str+"|R{SSM}|JBlicense")
+    listitem.setProperty(is_helper.inputstream_addon + '.license_key',
+                         "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
 
+
 def renew_token(playouturl):
-    #user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+    # user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
     channel = w.playChannel(playouturl)
     xbmc.log("renew channel token: " + str(channel), level=xbmc.LOGDEBUG)
 
@@ -262,12 +274,12 @@ def renew_token(playouturl):
     url = ""
     for stream in channel["streams"]:
         if (stream["protocol"] == 'mpeg-dash'):
-        #if (stream["protocol"] == 'hls'):
+            # if (stream["protocol"] == 'hls'):
             for link in stream['links']:
-                path=link["href"]
-                rel=link["rel"]
+                path = link["href"]
+                rel = link["rel"]
                 if path and (stream_select == "auto" or rel == stream_select):
-                    #path=path+"|User-Agent="+user_agent
+                    # path=path+"|User-Agent="+user_agent
                     url = path
                     xbmc.log("selected renew stream: " + str(link), level=xbmc.LOGDEBUG)
                     break
@@ -277,8 +289,8 @@ def renew_token(playouturl):
     xbmcplugin.addDirectoryItem(_handle, url, listitem)
     xbmcplugin.endOfDirectory(_handle, cacheToDisc=False)
 
-def play_recording(recordingid):
 
+def play_recording(recordingid):
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
@@ -290,11 +302,11 @@ def play_recording(recordingid):
 
     for stream in streamingData["streamingDetails"]["streams"]:
         if (stream["protocol"] == 'MPEG_DASH'):
-                path=stream["href"]
-                if path:
-                    path=path+"|User-Agent="+user_agent
-                    # print(path)
-                    break
+            path = stream["href"]
+            if path:
+                path = path + "|User-Agent=" + user_agent
+                # print(path)
+                break
 
     listitem = xbmcgui.ListItem(streamingData["epgData"]["title"], path=path)
     listitem.setMimeType('application/xml+dash')
@@ -303,9 +315,11 @@ def play_recording(recordingid):
     listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
 
     license_str = w.getLicense()
-    listitem.setProperty(is_helper.inputstream_addon + '.license_key', "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent="+user_agent+"&Content-Type=text%2Fxml&x-dt-custom-data="+license_str+"|R{SSM}|JBlicense")
+    listitem.setProperty(is_helper.inputstream_addon + '.license_key',
+                         "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
+
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
