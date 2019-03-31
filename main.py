@@ -148,7 +148,9 @@ def list_channels():
 
     b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
     # Iterate through categories
+    order_index = 0
     for data in channels:
+        order_index += 1
         channel = data["channel"]
 
         if "programs" in data and len(data["programs"]) > 0:
@@ -174,7 +176,7 @@ def list_channels():
 
         list_item = xbmcgui.ListItem(label=title)
         list_item.setInfo('video', {'title': title,
-                                    'tracknumber': channel['orderIndex'] + 1,
+                                    'tracknumber': order_index,
                                     'plot': plot,
                                     'mediatype': 'video'})
         logo_url = ""
