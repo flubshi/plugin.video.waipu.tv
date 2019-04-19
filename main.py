@@ -343,7 +343,37 @@ def play_recording(recordingid):
                 # print(path)
                 break
 
-    listitem = xbmcgui.ListItem(streamingData["epgData"]["title"], path=path)
+    b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
+    b_episodeid = xbmcplugin.getSetting(_handle, "recordings_episode_id") == "true"
+    b_recordingdate = xbmcplugin.getSetting(_handle, "recordings_date") == "true"
+    title = ""
+    metadata = {'mediatype': 'video'}
+    if streamingData["epgData"]["title"]:
+        title = filter_pictograms(streamingData["epgData"]["title"], b_filter)
+    if streamingData["epgData"]["episodeTitle"]:
+        title = title + ": " + filter_pictograms(streamingData["epgData"]["episodeTitle"], b_filter)
+    if b_recordingdate and not streamingData["epgData"]["episodeId"] and streamingData["epgData"]["startTime"]:
+        startDate = parser.parse(streamingData['epgData']['startTime'])
+        title = title + " " + startDate.strftime("(%d.%m.%Y %H:%M)")
+    if b_episodeid and streamingData['epgData']['season'] and streamingData['epgData']['episode']:
+        title = title + " (S" + streamingData['epgData']['season'] + "E" + streamingData['epgData']['episode'] + ")"
+        metadata.update({
+            'season': streamingData['epgData']['season'],
+            'episode': streamingData['epgData']['episode'],
+        })
+
+    metadata.update({"title": title})
+
+    listitem = xbmcgui.ListItem(title, path=path)
+
+    if "epgData" in streamingData and streamingData["epgData"]["description"]:
+        metadata.update({"plot": filter_pictograms(streamingData["epgData"]["description"], b_filter)})
+
+    if "epgData" in streamingData and len(streamingData["epgData"]["previewImages"]) > 0:
+        logo_url = streamingData["epgData"]["previewImages"][0] + "?width=256&height=256"
+        listitem.setArt({'thumb': logo_url, 'icon': logo_url})
+
+    listitem.setInfo('video', metadata)
     listitem.setMimeType('application/xml+dash')
     listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
