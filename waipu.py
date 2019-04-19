@@ -36,12 +36,22 @@ class Waipu:
         # TODO: renew token
         return self._auth['access_token']
 
+    def getAccountDetails(self):
+        try:
+            token = self.getToken()
+        except Exception as e:
+            return {'error': str(e)}
+        if token:
+            jwtheader, jwtpayload, jwtsignature = token.split(".")
+            jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
+            jwt_json = json.loads(jwtpayload_decoded)
+            return jwt_json
+        return {'error': 'unknown'}
+
     def getLicense(self):
         # Prepare for drm keys
-        jwtheader, jwtpayload, jwtsignature = self.getToken().split(".")
-        jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
-        jwt_json = json.loads(jwtpayload_decoded)
-        license = {'merchant': 'exaring', 'sessionId': 'default', 'userId': jwt_json["userHandle"]}
+        acc_details = self.getAccountDetails()
+        license = {'merchant': 'exaring', 'sessionId': 'default', 'userId': acc_details["userHandle"]}
         license_str = base64.b64encode(json.dumps(license))
         return license_str
 
@@ -88,10 +98,10 @@ class Waipu:
         return recordings
 
     def getStatus(self):
-        self.getToken()
         url = "https://status.wpstr.tv/status?nw=wifi"
         headers = {'User-Agent': self.user_agent}
         r = requests.get(url, headers=headers)
+        return r.json()
 
     def getCurrentProgram(self, channelId):
         headers = {'User-Agent': self.user_agent,

@@ -66,6 +66,30 @@ msgctxt "#32014"
 msgid "EPG settings"
 msgstr "EPG-Einstellungen"
 
+msgctxt "#32015"
+msgid "Account details"
+msgstr "Account Informationen"
+
+msgctxt "#32016"
+msgid "Status"
+msgstr "Status"
+
+msgctxt "#32017"
+msgid "Account"
+msgstr "Account"
+
+msgctxt "#32018"
+msgid "Subscription"
+msgstr "Paket"
+
+msgctxt "#32019"
+msgid "Network IP"
+msgstr "Netzwerk-IP"
+
+msgctxt "#32020"
+msgid "Network status"
+msgstr "Netzwerkstatus"
+
 msgctxt "#32030"
 msgid "Live TV"
 msgstr "Live TV"

@@ -45,6 +45,30 @@ def _T(id):
     return xbmcaddon.Addon().getLocalizedString(id)
 
 
+def load_acc_details():
+    last_check = xbmcplugin.getSetting(_handle, "accinfo_lastcheck")
+    if (int(time.time()) - int(last_check)) > 15*60:
+        # load acc details
+        acc_details = w.getAccountDetails()
+        xbmc.log("waipu accdetails: " + str(acc_details), level=xbmc.LOGDEBUG)
+        if 'error' in acc_details:
+            xbmcaddon.Addon().setSetting('accinfo_status', acc_details["error"])
+            xbmcaddon.Addon().setSetting('accinfo_account', "-")
+            xbmcaddon.Addon().setSetting('accinfo_subscription', "-")
+        else:
+            xbmcaddon.Addon().setSetting('accinfo_status', "Angemeldet")
+            xbmcaddon.Addon().setSetting('accinfo_account', acc_details["sub"])
+            xbmcaddon.Addon().setSetting('accinfo_subscription', acc_details["userAssets"]["account"]["subscription"])
+            xbmcaddon.Addon().setSetting('accinfo_lastcheck', str(int(time.time())))
+        # load network status
+        status = w.getStatus()
+        xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
+        xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
+        if status["statusCode"] == 200:
+            xbmcaddon.Addon().setSetting('accinfo_network', "Waipu verfügbar")
+        else:
+            xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
+
 def get_default():
     # Set plugin category. It is displayed in some skins as the name
     # of the current section.
@@ -336,6 +360,7 @@ def router(paramstring):
         if params['action'] == "play-channel":
             play_channel(params['playouturl'], params['title'], params['logourl'])
         elif params['action'] == "list-channels":
+            load_acc_details()
             list_channels()
         elif params['action'] == "list-recordings":
             list_recordings()
@@ -349,6 +374,7 @@ def router(paramstring):
             # e.g. typos in action names.
             raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
     else:
+        load_acc_details()
         get_default()
 
 
