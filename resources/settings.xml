@@ -4,11 +4,16 @@
         <setting label="32002" type="text" id="username" default=""/>
         <setting label="32003" type="text" id="password" option="hidden"  default=""/>
     </category>
-    <category label="32004">
+    <category label="32014">
         <setting id="epg_in_channel" type="bool" label="32005" default="true"/>
         <setting id="epg_in_plot" type="bool" label="32006" default="true"/>
         <setting id="epg_hours_future" label="32007" type="slider" default="3" range="1,5" option="int" />
-        <setting type="sep"/>
+     </category>
+    <category label="32011">
+        <setting id="recordings_episode_id" type="bool" label="32012" default="true"/>
+        <setting id="recordings_date" type="bool" label="32013" default="true"/>
+    </category>
+    <category label="32004">
         <setting id="stream_select" label="32008" type="labelenum" values="auto|hd|sd|ld|chromecast|chromecast-sd|capped-hd" default="auto" />
         <setting id="metadata_on_play" type="bool" label="32009" default="false"/>
         <setting id="filter_pictograms" type="bool" label="32010" default="false"/>

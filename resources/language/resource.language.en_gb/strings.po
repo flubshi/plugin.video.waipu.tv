@@ -50,6 +50,22 @@ msgctxt "#32010"
 msgid "Filter pictograms in titles"
 msgstr ""
 
+msgctxt "#32011"
+msgid "Recording settings"
+msgstr ""
+
+msgctxt "#32012"
+msgid "Show episode number"
+msgstr ""
+
+msgctxt "#32013"
+msgid "Show recording date"
+msgstr ""
+
+msgctxt "#32014"
+msgid "EPG settings"
+msgstr ""
+
 msgctxt "#32030"
 msgid "Live TV"
 msgstr ""

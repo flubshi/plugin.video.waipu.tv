@@ -77,6 +77,8 @@ def list_recordings():
     except Exception as e:
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
+    b_episodeid = xbmcplugin.getSetting(_handle, "recordings_episode_id") == "true"
+    b_recordingdate = xbmcplugin.getSetting(_handle, "recordings_date") == "true"
     # Iterate through categories
     for recording in recordings:
         label_dat = ''
@@ -92,6 +94,8 @@ def list_recordings():
                 label_dat = "[B]" + recording['epgData']['title'] + "[/B] - " + recording['epgData']['episodeTitle']
             else:
                 label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+            if b_episodeid and recording['epgData']['season'] and recording['epgData']['episode']:
+                label_dat = label_dat + " (S"+recording['epgData']['season']+"E"+recording['epgData']['episode']+")"
             metadata.update({
                 'title': label_dat,
                 'season': recording['epgData']['season'],
@@ -100,6 +104,9 @@ def list_recordings():
         else:
             # movie
             label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+            if b_recordingdate and 'startTime' in recording['epgData'] and recording['epgData']['startTime']:
+                startDate = parser.parse(recording['epgData']['startTime'])
+                label_dat = label_dat + " " + startDate.strftime("(%d.%m.%Y %H:%M)")
             metadata.update({
                 'title': label_dat
             })
