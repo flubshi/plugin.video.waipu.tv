@@ -105,6 +105,8 @@ def list_recordings():
     b_recordingdate = xbmcplugin.getSetting(_handle, "recordings_date") == "true"
     # Iterate through categories
     for recording in recordings:
+        if 'locked' in recording and recording['locked']:
+            continue
         label_dat = ''
         metadata = {
             'genre': recording['epgData']['genre'],
