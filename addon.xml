@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.2" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.3" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -29,6 +29,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.2.3 Fix: recordings are not displayed
 - 0.2.2 rework settings; display account/network status; add metadata; hide locked recordings
 - 0.2.1 improve pictogram filtering; set python krypton compatible; use program order
 - 0.2.0 Add options to remove pictograms, update disclaimer, change user_agent
