@@ -88,6 +88,7 @@ class Waipu:
         self.getToken()
         url = "https://recording.waipu.tv/api/recordings"
         headers = {'User-Agent': self.user_agent,
+                   'Accept': 'application/vnd.waipu.recordings-v2+json',
                    'Authorization': 'Bearer ' + self._auth['access_token']}
         r = requests.get(url, headers=headers)
         recordings = []
