@@ -21,12 +21,13 @@ _url = sys.argv[0]
 _handle = int(sys.argv[1])
 username = xbmcplugin.getSetting(_handle, "username")
 password = xbmcplugin.getSetting(_handle, "password")
+provider = int(xbmcplugin.getSetting(_handle, "provider_select"))
 
 # open settings, 
 if not username or not password:
     xbmcaddon.Addon().openSettings()
 
-w = Waipu(username, password)
+w = Waipu(username, password, provider)
 
 
 def get_url(**kwargs):

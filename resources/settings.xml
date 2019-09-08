@@ -3,6 +3,7 @@
     <category label="32001">
         <setting label="32002" type="text" id="username" default=""/>
         <setting label="32003" type="text" id="password" option="hidden"  default=""/>
+        <setting label="32025" type="enum" id="provider_select" lvalues="32026|32027" default="0" />
         <setting label="32015" type="lsep"/>
         <setting label="32016" type="text" id="accinfo_status" default="-" enable="false"/>
         <setting label="32017" type="text" id="accinfo_account" default="-" enable="false"/>

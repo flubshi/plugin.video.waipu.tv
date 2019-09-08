@@ -97,3 +97,15 @@ msgstr ""
 msgctxt "#32031"
 msgid "Recordings"
 msgstr ""
+
+msgctxt "#32025"
+msgid "Provider"
+msgstr ""
+
+msgctxt "#32026"
+msgid "Waipu.tv"
+msgstr ""
+
+msgctxt "#32027"
+msgid "O2 TV"
+msgstr ""

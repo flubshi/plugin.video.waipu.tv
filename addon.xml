@@ -5,6 +5,7 @@
   <import addon="script.module.requests" version="2.12.4"/>
   <import addon="script.module.inputstreamhelper" version="0.3.3"/>
   <import addon="script.module.dateutil" version="2.7.3" />
+  <import addon="script.module.mechanize" version="0.2.6" />
 </requires>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
