@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.3" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.4" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
   <import addon="script.module.inputstreamhelper" version="0.3.3"/>
   <import addon="script.module.dateutil" version="2.7.3" />
+  <import addon="script.module.mechanize" version="0.2.6" />
 </requires>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
@@ -29,6 +30,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.2.4 Implement O2 Authentication
 - 0.2.3 Fix: recordings are not displayed
 - 0.2.2 rework settings; display account/network status; add metadata; hide locked recordings
 - 0.2.1 improve pictogram filtering; set python krypton compatible; use program order

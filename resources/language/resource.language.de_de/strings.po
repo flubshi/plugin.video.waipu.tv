@@ -97,3 +97,15 @@ msgstr "Live TV"
 msgctxt "#32031"
 msgid "Recordings"
 msgstr "Aufnahmen"
+
+msgctxt "#32025"
+msgid "Provider"
+msgstr "Anbieter"
+
+msgctxt "#32026"
+msgid "Waipu.tv"
+msgstr "Waipu.tv"
+
+msgctxt "#32027"
+msgid "O2 TV"
+msgstr "O2 TV"
