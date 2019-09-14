@@ -4,6 +4,7 @@ import base64
 import json
 import mechanize
 import cookielib
+import xbmc
 
 
 class Waipu:
@@ -89,15 +90,12 @@ class Waipu:
 
     def decodeToken(self, token):
         jwtheader, jwtpayload, jwtsignature = token.split(".")
+        jwtpayload = jwtpayload.replace("_","/")
         try:
             jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
         except TypeError:
-            if "_" in jwtpayload:
-                pass
-                jwtpayload, junk = jwtpayload.split("_", 1)
-                jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4)) + "unknown\"}}}"
-            else:
-                raise
+            xbmc.log("base64 padding error: " + str(jwtpayload), level=xbmc.LOGERROR)
+            raise
 
         jwt_json = json.loads(jwtpayload_decoded)
         return jwt_json
