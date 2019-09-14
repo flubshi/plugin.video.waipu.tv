@@ -90,7 +90,7 @@ class Waipu:
 
     def decodeToken(self, token):
         jwtheader, jwtpayload, jwtsignature = token.split(".")
-        jwtpayload = jwtpayload.replace("_","/")
+        jwtpayload = jwtpayload.replace("_", "/").replace("-", "+")
         try:
             jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
         except TypeError:
