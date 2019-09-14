@@ -61,7 +61,7 @@ class Waipu:
         response = br.submit()
 
         response_plain = str(response.read())
-        print("final-site: " + response_plain)
+        # print("final-site: " + response_plain)
 
         if response_plain.find("Ihre Eingabe ist ung&uuml;ltig. Falls Sie einen Business Tarif bei") != -1:
             # invalid login credentials
@@ -69,7 +69,8 @@ class Waipu:
 
         for cookie in cj:
             if cookie.name == "user_token":
-                self._auth = {'access_token': cookie.value, "expires": time.time() + 3600}
+                # print("Cookie: "+cookie.value)
+                self._auth = {'access_token': str(cookie.value).strip(), "expires": time.time() + 3600}
 
                 self.logged_in = True
                 return 200
@@ -86,16 +87,29 @@ class Waipu:
         # TODO: renew token
         return self._auth['access_token']
 
+    def decodeToken(self, token):
+        jwtheader, jwtpayload, jwtsignature = token.split(".")
+        try:
+            jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
+        except TypeError:
+            if "_" in jwtpayload:
+                pass
+                jwtpayload, junk = jwtpayload.split("_", 1)
+                jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4)) + "unknown\"}}}"
+            else:
+                raise
+
+        jwt_json = json.loads(jwtpayload_decoded)
+        return jwt_json
+
+
     def getAccountDetails(self):
         try:
             token = self.getToken()
         except Exception as e:
             return {'error': str(e)}
         if token:
-            jwtheader, jwtpayload, jwtsignature = token.split(".")
-            jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
-            jwt_json = json.loads(jwtpayload_decoded)
-            return jwt_json
+            return self.decodeToken(token)
         return {'error': 'unknown'}
 
     def getLicense(self):
@@ -106,10 +120,7 @@ class Waipu:
         return license_str
 
     def getAccountChannels(self):
-        jwtheader, jwtpayload, jwtsignature = self.getToken().split(".")
-        jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
-        jwt_json = json.loads(jwtpayload_decoded)
-
+        jwt_json = self.decodeToken(self.getToken())
         acc_channels = []
         acc_channels += jwt_json["userAssets"]["channels"]["SD"]
         acc_channels += jwt_json["userAssets"]["channels"]["HD"]
