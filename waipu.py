@@ -92,7 +92,7 @@ class Waipu:
         jwtheader, jwtpayload, jwtsignature = token.split(".")
         jwtpayload = jwtpayload.replace("_", "/").replace("-", "+")
         try:
-                jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
+            jwtpayload_decoded = base64.b64decode(jwtpayload + '=' * (-len(jwtpayload) % 4))
         except TypeError:
             xbmc.log("base64 padding error: " + str(jwtpayload), level=xbmc.LOGERROR)
             raise
