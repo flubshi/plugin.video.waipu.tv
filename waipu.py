@@ -70,8 +70,10 @@ class Waipu:
 
         for cookie in cj:
             if cookie.name == "user_token":
+                token = str(cookie.value).strip()
+                decoded_token = self.decodeToken(token)
                 # print("Cookie: "+cookie.value)
-                self._auth = {'access_token': str(cookie.value).strip(), "expires": time.time() + 3600}
+                self._auth = {'access_token': token, "expires": decoded_token["exp"]}
 
                 self.logged_in = True
                 return 200

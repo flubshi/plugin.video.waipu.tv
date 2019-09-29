@@ -1,7 +1,8 @@
 
-# **Waipu.tv Plugin for Kodi**
+# **Waipu.tv and O2 TV Plugin for Kodi**
 
-This is python plugin for kodi to play tv channels from waipu.tv
+This is python plugin for kodi to play tv channels from waipu.tv and O2 TV.
+
 It was initially created by [mi-ro](https://www.kodinerds.net/index.php/Thread/54288-waipu-tv-Plugin-f%C3%BCr-Kodi/?postID=474093#post474093)
 
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv" version="0.2.7" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.2.8" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -11,10 +11,10 @@
   <provides>video</provides>
 </extension>
 <extension point="xbmc.addon.metadata">
-  <summary lang="de">waipu.tv Kodi Video Plugin</summary>
-  <summary lang="en">waipu.tv Kodi Video Plugin</summary>
-  <description lang="en">An waipu.tv video plugin for Kodi mediacenter. Note: This is not an official waipu plugin and not related to Exaring AG or waipu.tv. It was developed by volunteers.</description>
-  <description lang="de">Genießen Sie 90 TV-Sender im Live-Stream. Hinweis: Dies ist kein offizielles Waipu-Plugin und steht nicht in Verbindung zur Exaring AG oder zu waipu.tv. Es wurde von Freiwilligen entwickelt.</description>
+  <summary lang="de">waipu.tv und O2 TV Kodi Video Plugin</summary>
+  <summary lang="en">waipu.tv and O2 TV Kodi Video Plugin</summary>
+  <description lang="en">An waipu.tv and O2 TV video plugin for Kodi mediacenter. Note: This is not an official waipu plugin and not related to Exaring AG or waipu.tv. It was developed by volunteers.</description>
+  <description lang="de">Genießen Sie über 100 TV-Sender von Waipu.tv oder O2 TV im Live-Stream. Hinweis: Dies ist kein offizielles Waipu-Plugin und steht nicht in Verbindung zur Exaring AG oder zu waipu.tv. Es wurde von Freiwilligen entwickelt.</description>
   <language></language>
   <platform>all</platform>
   <license>GNU GENERAL PUBLIC LICENSE. Version 3, June 2007</license>
@@ -30,6 +30,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.2.8  Add O2 Branding and smaller improvements
 - 0.2.7 Improve O2 error handling (encoding of plus) [thx user alexxx]
 - 0.2.6 Improve O2 error handling (encoding of underscore)
 - 0.2.5 Improve O2 error handling

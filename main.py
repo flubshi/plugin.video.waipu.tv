@@ -48,7 +48,10 @@ def _T(id):
 
 def load_acc_details():
     last_check = xbmcplugin.getSetting(_handle, "accinfo_lastcheck")
-    if (int(time.time()) - int(last_check)) > 15*60:
+    info_acc = xbmcplugin.getSetting(_handle, "accinfo_account")
+    user = xbmcplugin.getSetting(_handle, "username")
+
+    if info_acc != user or (int(time.time()) - int(last_check)) > 15*60:
         # load acc details
         acc_details = w.getAccountDetails()
         xbmc.log("waipu accdetails: " + str(acc_details), level=xbmc.LOGDEBUG)
