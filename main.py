@@ -112,6 +112,9 @@ def list_recordings():
         if 'locked' in recording and recording['locked']:
             continue
         label_dat = ''
+        if recording['status'] == "RECORDING":
+            label_dat = '[COLOR red][REC][/COLOR] '
+
         metadata = {
             'genre': recording['epgData']['genre'],
             'plot': recording['epgData']['description'],
@@ -121,9 +124,9 @@ def list_recordings():
             # tv show
             if recording['epgData']['episodeTitle']:
                 metadata.update({"tvshowtitle": recording['epgData']['episodeTitle']})
-                label_dat = "[B]" + recording['epgData']['title'] + "[/B] - " + recording['epgData']['episodeTitle']
+                label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B] - " + recording['epgData']['episodeTitle']
             else:
-                label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+                label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B]"
             if b_episodeid and recording['epgData']['season'] and recording['epgData']['episode']:
                 label_dat = label_dat + " (S"+recording['epgData']['season']+"E"+recording['epgData']['episode']+")"
             metadata.update({
@@ -133,7 +136,7 @@ def list_recordings():
             })
         else:
             # movie
-            label_dat = "[B]" + recording['epgData']['title'] + "[/B]"
+            label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B]"
             if b_recordingdate and 'startTime' in recording['epgData'] and recording['epgData']['startTime']:
                 startDate = parser.parse(recording['epgData']['startTime'])
                 label_dat = label_dat + " " + startDate.strftime("(%d.%m.%Y %H:%M)")

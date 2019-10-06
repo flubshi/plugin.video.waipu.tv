@@ -154,7 +154,7 @@ class Waipu:
         recordings = []
         if r.status_code == 200:
             for recording in r.json():
-                if recording['status'] == "FINISHED":
+                if recording['status'] == "FINISHED" or recording['status'] == "RECORDING":
                     recordings.append(recording)
         return recordings
 
