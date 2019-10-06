@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.2.8" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.2.9" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -30,7 +30,8 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
-- 0.2.8  Add O2 Branding and smaller improvements
+- 0.2.9 Display and play active recordings
+- 0.2.8 Add O2 Branding and smaller improvements
 - 0.2.7 Improve O2 error handling (encoding of plus) [thx user alexxx]
 - 0.2.6 Improve O2 error handling (encoding of underscore)
 - 0.2.5 Improve O2 error handling
