@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.2.9" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.3.0" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
   <import addon="script.module.inputstreamhelper" version="0.3.3"/>
   <import addon="script.module.dateutil" version="2.7.3" />
-  <import addon="script.module.mechanize" version="0.2.6" />
+  <import addon="script.module.mechanize" version="0.4.3" />
 </requires>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
@@ -30,6 +30,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.3.0 Add python3 support
 - 0.2.9 Display and play active recordings
 - 0.2.8 Add O2 Branding and smaller improvements
 - 0.2.7 Improve O2 error handling (encoding of plus) [thx user alexxx]
