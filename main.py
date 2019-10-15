@@ -5,9 +5,16 @@
 # License: GPL v.3 https://www.gnu.org/copyleft/gpl.html
 
 import sys
-from urllib import urlencode
-from urlparse import parse_qsl
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
 from waipu import Waipu
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
 import xbmcgui
 import xbmcplugin
 import xbmcaddon
@@ -394,7 +401,7 @@ def play_recording(recordingid):
 
 
 def router(paramstring):
-    params = dict(parse_qsl(paramstring))
+    params = dict(urlparse.parse_qsl(paramstring))
     if params:
         if params['action'] == "play-channel":
             play_channel(params['playouturl'], params['title'], params['logourl'])
