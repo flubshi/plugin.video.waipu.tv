@@ -3,7 +3,10 @@ import time
 import base64
 import json
 import mechanize
-import cookielib
+try:
+    import http.cookiejar
+except ImportError:
+    import cookielib
 import xbmc
 
 
@@ -116,8 +119,12 @@ class Waipu:
         # Prepare for drm keys
         acc_details = self.getAccountDetails()
         license = {'merchant': 'exaring', 'sessionId': 'default', 'userId': acc_details["userHandle"]}
-        license_str = base64.b64encode(json.dumps(license))
-        return license_str
+        try:
+            license_str = base64.b64encode(json.dumps(license))
+            return license_str
+        except Exception as e:
+            license_str = base64.b64encode(json.dumps(license).encode("utf-8"))
+            return str(license_str, "utf-8")
 
     def getAccountChannels(self):
         jwt_json = self.decodeToken(self.getToken())
