@@ -5,10 +5,7 @@
 # License: GPL v.3 https://www.gnu.org/copyleft/gpl.html
 
 import sys
-try:
-    from urllib import urlencode
-except ImportError:
-    from urllib.parse import urlencode
+import routing
 from waipu_api import WaipuAPI
 import xbmc
 import xbmcgui
@@ -18,37 +15,26 @@ import inputstreamhelper
 import time
 from dateutil import parser
 
-# Get the plugin url in plugin:// notation.
-_url = sys.argv[0]
-# Get the plugin handle as an integer number.
-_handle = int(sys.argv[1])
-username = xbmcplugin.getSetting(_handle, "username")
-password = xbmcplugin.getSetting(_handle, "password")
-provider = int(xbmcplugin.getSetting(_handle, "provider_select"))
+plugin = routing.Plugin()
+
+username = xbmcplugin.getSetting(plugin.handle, "username")
+password = xbmcplugin.getSetting(plugin.handle, "password")
+provider = int(xbmcplugin.getSetting(plugin.handle, "provider_select"))
+
+# open settings,
+if not username or not password:
+    xbmcaddon.Addon().openSettings()
 
 w = WaipuAPI(username, password, provider)
-
-
-def get_url(**kwargs):
-    """
-    Create a URL for calling the plugin recursively from the given set of keyword arguments.
-
-    :param kwargs: "argument=value" pairs
-    :type kwargs: dict
-    :return: plugin call URL
-    :rtype: str
-    """
-    return '{0}?{1}'.format(_url, urlencode(kwargs))
-
 
 def _T(id):
     return xbmcaddon.Addon().getLocalizedString(id)
 
 
 def load_acc_details():
-    last_check = xbmcplugin.getSetting(_handle, "accinfo_lastcheck")
-    info_acc = xbmcplugin.getSetting(_handle, "accinfo_account")
-    user = xbmcplugin.getSetting(_handle, "username")
+    last_check = xbmcplugin.getSetting(plugin.handle, "accinfo_lastcheck")
+    info_acc = xbmcplugin.getSetting(plugin.handle, "accinfo_account")
+    user = xbmcplugin.getSetting(plugin.handle, "username")
 
     if info_acc != user or (int(time.time()) - int(last_check)) > 15*60:
         # load acc details
@@ -72,40 +58,22 @@ def load_acc_details():
         else:
             xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
 
-def get_default():
-    # Set plugin category. It is displayed in some skins as the name
-    # of the current section.
-    xbmcplugin.setPluginCategory(_handle, 'waipu.tv')
-
-    # TV channel list
-    list_item = xbmcgui.ListItem(label=_T(32030), iconImage="DefaultAddonPVRClient.png")
-    url = get_url(action='list-channels')
-    xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
-
-    # recordings list
-    list_item = xbmcgui.ListItem(label=_T(32031), iconImage="DefaultFolder.png")
-    url = get_url(action='list-recordings')
-    xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=True)
-
-    # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(_handle)
-
-
+@plugin.route('/list-recordings')
 def list_recordings():
     # Set plugin category. It is displayed in some skins as the name
     # of the current section.
-    xbmcplugin.setPluginCategory(_handle, 'waipu.tv')
+    xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(plugin.handle, 'videos')
     # Get video categories
     try:
         recordings = w.getRecordings()
     except Exception as e:
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
-    b_episodeid = xbmcplugin.getSetting(_handle, "recordings_episode_id") == "true"
-    b_recordingdate = xbmcplugin.getSetting(_handle, "recordings_date") == "true"
+    b_episodeid = xbmcplugin.getSetting(plugin.handle, "recordings_episode_id") == "true"
+    b_recordingdate = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
     # Iterate through categories
     for recording in recordings:
         if 'locked' in recording and recording['locked']:
@@ -153,10 +121,10 @@ def list_recordings():
                 {'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
             break
         list_item.setProperty('IsPlayable', 'true')
-        url = get_url(action='play-recording', recordingid=recording["id"])
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=False)
+        url = plugin.url_for(play_recording, recording_id=recording["id"])
+        xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
     # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(_handle)
+    xbmcplugin.endOfDirectory(plugin.handle)
 
 
 def filter_pictograms(data, filter=True):
@@ -164,19 +132,20 @@ def filter_pictograms(data, filter=True):
         return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
     return data
 
-
+@plugin.route('/list-channels')
 def list_channels():
+    load_acc_details()
     # Set plugin category. It is displayed in some skins as the name
     # of the current section.
-    xbmcplugin.setPluginCategory(_handle, 'waipu.tv')
+    xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
     # Set plugin content. It allows Kodi to select appropriate views
     # for this type of content.
-    xbmcplugin.setContent(_handle, 'videos')
+    xbmcplugin.setContent(plugin.handle, 'videos')
     # Get video categories
-    epg_in_channel = xbmcplugin.getSetting(_handle, "epg_in_channel") == "true"
-    epg_in_plot = xbmcplugin.getSetting(_handle, "epg_in_plot") == "true"
+    epg_in_channel = xbmcplugin.getSetting(plugin.handle, "epg_in_channel") == "true"
+    epg_in_plot = xbmcplugin.getSetting(plugin.handle, "epg_in_plot") == "true"
     if epg_in_plot:
-        epg_hours_future = xbmcplugin.getSetting(_handle, "epg_hours_future")
+        epg_hours_future = xbmcplugin.getSetting(plugin.handle, "epg_hours_future")
     else:
         epg_hours_future = 0
     try:
@@ -185,7 +154,7 @@ def list_channels():
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
 
-    b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
+    b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"
     # Iterate through categories
     order_index = 0
     for data in channels:
@@ -228,16 +197,19 @@ def list_channels():
 
         list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = get_url(action='play-channel', playouturl=livePlayoutURL,
-                      title=title.encode('ascii', 'ignore').decode('ascii'), logourl=logo_url)
-        xbmcplugin.addDirectoryItem(_handle, url, list_item, isFolder=False)
+        url = plugin.url_for(play_channel, playout_url=livePlayoutURL, title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=logo_url)
+        xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_TRACKNUM)
+    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(_handle)
+    xbmcplugin.endOfDirectory(plugin.handle)
 
+@plugin.route('/play-channel')
+def play_channel():
+    playouturl = plugin.args['playout_url'][0]
+    title = plugin.args['title'][0]
+    logo_url = plugin.args['logo_url'][0]
 
-def play_channel(playouturl, title, logo_url):
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
@@ -252,7 +224,7 @@ def play_channel(playouturl, title, logo_url):
     channel = w.playChannel(playouturl)
     xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
 
-    stream_select = xbmcplugin.getSetting(_handle, "stream_select")
+    stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
     xbmc.log("stream to be played: " + str(stream_select), level=xbmc.LOGDEBUG)
 
     for stream in channel["streams"]:
@@ -275,11 +247,11 @@ def play_channel(playouturl, title, logo_url):
 
     metadata = {'title': title, 'mediatype': 'video'}
 
-    if xbmcplugin.getSetting(_handle, "metadata_on_play") == "true":
+    if xbmcplugin.getSetting(plugin.handle, "metadata_on_play") == "true":
         current_program = w.getCurrentProgram(channel["channel"])
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
 
-        b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
+        b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"
 
         description = ""
         if "title" in current_program and current_program["title"] is not None:
@@ -301,15 +273,16 @@ def play_channel(playouturl, title, logo_url):
     listitem.setProperty(is_helper.inputstream_addon + '.license_key',
                          "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
 
-    xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
+    xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
 
-
-def renew_token(playouturl):
+@plugin.route('/renew-token')
+def renew_token():
+    playouturl = plugin.args['playouturl'][0]
     # user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
     channel = w.playChannel(playouturl)
     xbmc.log("renew channel token: " + str(channel), level=xbmc.LOGDEBUG)
 
-    stream_select = xbmcplugin.getSetting(_handle, "stream_select")
+    stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
     xbmc.log("stream to be renewed: " + str(stream_select), level=xbmc.LOGDEBUG)
 
     url = ""
@@ -327,11 +300,13 @@ def renew_token(playouturl):
     xbmc.executebuiltin(
         'Notification("Stream RENEW","tada",30000)')
     listitem = xbmcgui.ListItem()
-    xbmcplugin.addDirectoryItem(_handle, url, listitem)
-    xbmcplugin.endOfDirectory(_handle, cacheToDisc=False)
+    xbmcplugin.addDirectoryItem(plugin.handle, url, listitem)
+    xbmcplugin.endOfDirectory(plugin.handle, cacheToDisc=False)
 
-
-def play_recording(recordingid):
+@plugin.route('/play-recording')
+def play_recording():
+    recordingid = plugin.args['recording_id'][0]
+    
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
@@ -349,9 +324,9 @@ def play_recording(recordingid):
                 # print(path)
                 break
 
-    b_filter = xbmcplugin.getSetting(_handle, "filter_pictograms") == "true"
-    b_episodeid = xbmcplugin.getSetting(_handle, "recordings_episode_id") == "true"
-    b_recordingdate = xbmcplugin.getSetting(_handle, "recordings_date") == "true"
+    b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"
+    b_episodeid = xbmcplugin.getSetting(plugin.handle, "recordings_episode_id") == "true"
+    b_recordingdate = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
     title = ""
     metadata = {'mediatype': 'video'}
     if streamingData["epgData"]["title"]:
@@ -389,4 +364,26 @@ def play_recording(recordingid):
     listitem.setProperty(is_helper.inputstream_addon + '.license_key',
                          "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
 
-    xbmcplugin.setResolvedUrl(_handle, True, listitem=listitem)
+    xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
+
+@plugin.route('/')
+def index():
+    load_acc_details()
+
+    # Set plugin category. It is displayed in some skins as the name
+    # of the current section.
+    xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
+
+    # TV channel list
+    list_item = xbmcgui.ListItem(label=_T(32030), iconImage="DefaultAddonPVRClient.png")
+    xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_channels), list_item, isFolder=True)
+
+    # recordings list
+    list_item = xbmcgui.ListItem(label=_T(32031), iconImage="DefaultFolder.png")
+    xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_recordings), list_item, isFolder=True)
+
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(plugin.handle)
+
+def run():
+    plugin.run()
