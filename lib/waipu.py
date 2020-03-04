@@ -132,6 +132,117 @@ def filter_pictograms(data, filter=True):
         return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
     return data
 
+@plugin.route('/play-vod')
+def play_vod():
+    streamUrlProvider = plugin.args['streamUrlProvider'][0]
+    title = plugin.args['title'][0]
+    # logo_url = plugin.args['logo_url'][0]
+    user_agent = "kodi plugin for waipu.tv (python)"
+    
+    stream = w.getUrl(streamUrlProvider)
+    # print("stream: "+str(stream))
+
+    is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
+    if not is_helper.check_inputstream():
+        return False
+    
+    if "player" in stream and "mpd" in stream["player"]:
+        listitem = xbmcgui.ListItem(title, path=stream["player"]["mpd"])
+        listitem.setMimeType('application/xml+dash')
+        listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
+        listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
+        listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+        license_str = w.getLicense()
+        listitem.setProperty(is_helper.inputstream_addon + '.license_key',
+                             "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
+        xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
+    else:
+        return False
+    
+
+@plugin.route('/list-vod-channel')
+def list_vod_channel():
+    channel_id = plugin.args['channel_id'][0]
+
+    xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
+    streams = w.getEPGForChannel(channel_id)
+    for stream in streams:
+        #print("stream: "+str(stream))
+        title = filter_pictograms(stream["title"])
+        streamUrlProvider = stream["streamUrlProvider"]
+                
+        previewImage=""
+        if "previewImages" in stream:
+            previewImage = stream["previewImages"][0] + "?width=200&height=200"
+            
+        plot = ""
+        if "description" in stream:
+            plot = stream["description"]
+
+        list_item = xbmcgui.ListItem(label=title)
+        list_item.setInfo('video', {'title': title,
+                                    'plot': plot,
+                                    'mediatype': 'video'})
+
+        list_item.setArt({'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
+        list_item.setProperty('IsPlayable', 'true')
+            
+
+        url = plugin.url_for(play_vod, streamUrlProvider=streamUrlProvider,
+                             title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=previewImage)
+        xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
+
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(plugin.handle)
+
+@plugin.route('/list-vod-channels')
+def list_vod_channels():
+    load_acc_details()
+    # Set plugin category. It is displayed in some skins as the name
+    # of the current section.
+    xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
+    # Set plugin content. It allows Kodi to select appropriate views
+    # for this type of content.
+    xbmcplugin.setContent(plugin.handle, 'videos')
+    # Get video categories
+    epg_in_channel = xbmcplugin.getSetting(plugin.handle, "epg_in_channel") == "true"
+    epg_in_plot = xbmcplugin.getSetting(plugin.handle, "epg_in_plot") == "true"
+    if epg_in_plot:
+        epg_hours_future = xbmcplugin.getSetting(plugin.handle, "epg_hours_future")
+    else:
+        epg_hours_future = 0
+    try:
+        channels = w.getChannels(epg_hours_future)
+    except Exception as e:
+        dialog = xbmcgui.Dialog().ok("Error", str(e))
+        return
+
+    # Iterate through categories
+    order_index = 0
+    for data in channels:
+        channel = data["channel"]
+
+        if not ("properties" in channel and "tvfuse" in channel["properties"]):
+            # is not VoD channel
+            continue
+
+        order_index += 1
+        title = channel['displayName']
+
+        list_item = xbmcgui.ListItem(label=title, iconImage="DefaultFolder.png")
+        logo_url = ""
+        for link in channel["links"]:
+            if link["rel"] == "iconsd":
+                logo_url = link["href"] + "?width=200&height=200"
+
+        list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
+        url = plugin.url_for(list_vod_channel, channel_id=channel['id'])
+        xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=True)
+    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(plugin.handle)
+
 @plugin.route('/list-channels')
 def list_channels():
     load_acc_details()
@@ -158,8 +269,13 @@ def list_channels():
     # Iterate through categories
     order_index = 0
     for data in channels:
-        order_index += 1
         channel = data["channel"]
+
+        if "properties" in channel and "tvfuse" in channel["properties"]:
+            # is VoD channel
+            continue
+
+        order_index += 1
 
         if "programs" in data and len(data["programs"]) > 0:
             epg_now = " | " + filter_pictograms(data["programs"][0]["title"], b_filter)
@@ -377,6 +493,10 @@ def index():
     # TV channel list
     list_item = xbmcgui.ListItem(label=_T(32030), iconImage="DefaultAddonPVRClient.png")
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_channels), list_item, isFolder=True)
+
+    # VoD Channels
+    list_item = xbmcgui.ListItem(label="VoD", iconImage="DefaultFolder.png")
+    xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_vod_channels), list_item, isFolder=True)
 
     # recordings list
     list_item = xbmcgui.ListItem(label=_T(32031), iconImage="DefaultFolder.png")

@@ -178,6 +178,23 @@ class WaipuAPI:
         url = "https://epg.waipu.tv/api/channels/" + channelId + "/programs/current"
         r = requests.get(url, headers=headers)
         return r.json()
+    
+    def getEPGForChannel(self, channelId):
+        self.getToken()
+        starttime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() - 3*24 * 60 * 60));
+        endtime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() + 3*24 * 60 * 60))
+        headers = {'User-Agent': self.user_agent,
+                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        url = "https://epg.waipu.tv/api/channels/" + channelId + "/programs?startTime="+starttime+"&stopTime="+endtime
+        r = requests.get(url, headers=headers)
+        return r.json()
+    
+    def getUrl(self, url):
+        self.getToken()
+        headers = {'User-Agent': self.user_agent,
+                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        r = requests.get(url, headers=headers)
+        return r.json()
 
     def playChannel(self, playouturl):
         self.getToken()
