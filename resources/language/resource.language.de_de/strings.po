@@ -98,6 +98,10 @@ msgctxt "#32031"
 msgid "Recordings"
 msgstr "Aufnahmen"
 
+msgctxt "#32032"
+msgid "VoD"
+msgstr "VoD"
+
 msgctxt "#32025"
 msgid "Provider"
 msgstr "Anbieter"
