@@ -495,7 +495,7 @@ def index():
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_channels), list_item, isFolder=True)
 
     # VoD Channels
-    list_item = xbmcgui.ListItem(label="VoD", iconImage="DefaultFolder.png")
+    list_item = xbmcgui.ListItem(label=_T(32032), iconImage="DefaultFolder.png")
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_vod_channels), list_item, isFolder=True)
 
     # recordings list
