@@ -2,7 +2,7 @@ import requests
 import time
 import base64
 import json
-import mechanize
+
 try:
     import http.cookiejar
 except ImportError:
@@ -42,6 +42,7 @@ class WaipuAPI:
         return r.status_code
 
     def fetchTokenO2(self):
+        import mechanize
         br = mechanize.Browser()
         cj = cookielib.CookieJar()
         br.set_cookiejar(cj)

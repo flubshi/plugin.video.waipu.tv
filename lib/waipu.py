@@ -6,7 +6,7 @@
 
 import sys
 import routing
-from waipu_api import WaipuAPI
+from lib.waipu_api import WaipuAPI
 import xbmc
 import xbmcgui
 import xbmcplugin
