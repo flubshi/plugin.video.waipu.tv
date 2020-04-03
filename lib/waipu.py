@@ -229,7 +229,7 @@ def list_vod_channels():
         order_index += 1
         title = channel['displayName']
 
-        list_item = xbmcgui.ListItem(label=title, iconImage="DefaultFolder.png")
+        list_item = xbmcgui.ListItem(label=title)
         logo_url = ""
         for link in channel["links"]:
             if link["rel"] == "iconsd":
@@ -491,15 +491,15 @@ def index():
     xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
 
     # TV channel list
-    list_item = xbmcgui.ListItem(label=_T(32030), iconImage="DefaultAddonPVRClient.png")
+    list_item = xbmcgui.ListItem(label=_T(32030))
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_channels), list_item, isFolder=True)
 
     # VoD Channels
-    list_item = xbmcgui.ListItem(label=_T(32032), iconImage="DefaultFolder.png")
+    list_item = xbmcgui.ListItem(label=_T(32032))
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_vod_channels), list_item, isFolder=True)
 
     # recordings list
-    list_item = xbmcgui.ListItem(label=_T(32031), iconImage="DefaultFolder.png")
+    list_item = xbmcgui.ListItem(label=_T(32031))
     xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_recordings), list_item, isFolder=True)
 
     # Finish creating a virtual folder.
