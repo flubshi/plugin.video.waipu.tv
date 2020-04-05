@@ -8,6 +8,11 @@
   <import addon="script.module.mechanize" version="0.4.3" />
   <import addon="script.module.routing" version="0.2.0"/>
 </requires>
+
+<extension point="kodi.mediaimporter" library="importer.py">
+   <canlookupprovider>true</canlookupprovider>
+   <providersettings>providersettings.xml</providersettings>
+</extension>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
 </extension>
