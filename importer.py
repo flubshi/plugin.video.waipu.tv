@@ -87,7 +87,7 @@ def importItems(handle, mediaType, importSettings, mediaProviderSettings):
                 info.update({'country': stream['country']})
 
             if "duration" in stream and stream['duration']:
-                info.update({'duration': stream['duration'] * 60})
+                info.update({'duration': (int(stream['duration']) * 60)})
 
             # unassigned options: tag, album, artist, writer, director, lastplayed, placount, mpaa, rating, dateadded, plotoutline
 
