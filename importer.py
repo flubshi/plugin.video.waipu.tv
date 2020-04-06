@@ -106,7 +106,7 @@ def discoverProvider(handle, options):
 
     providerId = "plugin.video.waipu.tv"
     providerIconUrl = "https://raw.githubusercontent.com/flubshi/plugin.video.waipu.tv/master/icon.png"
-    provider = xbmcmediaimport.MediaProvider(providerId, "127.0.0.1", "Waipu.tv / O2 TV", providerIconUrl, mediatypes)
+    provider = xbmcmediaimport.MediaProvider(providerId, "plugin://"+providerId, "Waipu.tv / O2 TV", providerIconUrl, mediatypes)
     provider.setIconUrl(providerIconUrl)
 
     xbmcmediaimport.setDiscoveredProvider(handle, True, provider)
