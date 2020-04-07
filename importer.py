@@ -53,7 +53,7 @@ def importItems(handle, mediaType, importSettings, mediaProviderSettings):
         return items
     w = WaipuAPI(username, password, provider)
 
-    channels = ['FILMTASTIC', 'WATCHMOVIESNOW', 'NETZKINO']  # , 'WATCHDOKUS'
+    channels = ['FILMTASTIC', 'WATCHMOVIESNOW', 'NETZKINO', 'BRONCO']  # , 'WATCHDOKUS'
     for channel_id in channels:
         streams = w.getEPGForChannel(channel_id)
         for stream in streams:
@@ -146,6 +146,20 @@ def isProviderReady(handle, options):
     # prepare the media provider settings
     if not mediaProvider.prepareSettings():
         log('cannot prepare media provider settings', xbmc.LOGERROR)
+        return
+    
+    addon = xbmcaddon.Addon()
+    username = addon.getSetting("username")
+    password = addon.getSetting("password")
+    provider = addon.getSettingInt("provider_select")
+
+    if not username or not password:
+        log('login credentials not filled', xbmc.LOGERROR)
+        return
+
+    w = WaipuAPI(username, password, provider)
+    if w.fetchToken() != 200:
+        log('login credentials invalid', xbmc.LOGERROR)
         return
 
     xbmcmediaimport.setProviderReady(handle, True)
