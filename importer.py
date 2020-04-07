@@ -8,6 +8,7 @@ import sys
 from six.moves.urllib.parse import parse_qs, unquote, urlparse, urlencode
 from lib.waipu_api import WaipuAPI
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcmediaimport
 
@@ -43,9 +44,11 @@ def mediaProvider2str(mediaProvider):
 def importItems(handle, mediaType, importSettings, mediaProviderSettings):
     items = []
 
-    username = mediaProviderSettings.getString("username")
-    password = mediaProviderSettings.getString("password")
-    provider = mediaProviderSettings.getInt("provider_select")
+    addon = xbmcaddon.Addon()
+    username = addon.getSetting("username")
+    password = addon.getSetting("password")
+    provider = addon.getSettingInt("provider_select")
+
     if not username or not password:
         return items
     w = WaipuAPI(username, password, provider)

@@ -11,7 +11,6 @@
 
 <extension point="kodi.mediaimporter" library="importer.py">
    <canlookupprovider>true</canlookupprovider>
-   <providersettings>providersettings.xml</providersettings>
 </extension>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
