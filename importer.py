@@ -53,47 +53,89 @@ def importItems(handle, mediaType, importSettings, mediaProviderSettings):
         return items
     w = WaipuAPI(username, password, provider)
 
-    channels = ['FILMTASTIC', 'WATCHMOVIESNOW', 'NETZKINO', 'BRONCO']  # , 'WATCHDOKUS'
+    channels = []
+    if mediaType == xbmcmediaimport.MediaTypeMovie:
+        channels = ['FILMTASTIC', 'WATCHMOVIESNOW', 'NETZKINO', 'BRONCO']  # , 'WATCHDOKUS'
+    else:
+        channels = ['WATCH4CRIME']
+    shows = []
+    seasons = []
     for channel_id in channels:
         streams = w.getEPGForChannel(channel_id)
         for stream in streams:
+            if mediaType == xbmcmediaimport.MediaTypeMovie and stream['series']:
+                continue
+            if mediaType != xbmcmediaimport.MediaTypeMovie and not stream['series']:
+                continue
+
             # print("stream: "+str(stream))
             title = filter_pictograms(stream["title"])
-            streamUrlProvider = stream["streamUrlProvider"]
 
             previewImage = ""
             if "previewImages" in stream:
                 previewImage = stream["previewImages"][0] + "?width=200&height=200"
 
-            stream_url = "plugin://plugin.video.waipu.tv/play-vod?" + urlencode(
-                {"streamUrlProvider": streamUrlProvider, "title": title, "logo_url": previewImage})
+            info = {'mediatype': mediaType}
 
-            item = xbmcgui.ListItem(label=title, path=stream_url)
+            if not mediaType == xbmcmediaimport.MediaTypeMovie:
+                # "title":"Undercover - S01:E01 - Undercover"
+                showtitle, se, title = title.split('-', 2)
+                season, episode = se.split(':', 1)
+                title = title.strip()
+                showtitle = showtitle.strip()
+                season = season.strip(' SE')
+                episode = episode.strip(' SE')
 
-            info = {'mediatype': mediaType,
-                    'title': title,
+                info['tvshowtitle'] = showtitle
+
+                if mediaType == xbmcmediaimport.MediaTypeTvShow:
+                    if showtitle in shows:
+                        continue
+                    shows.append(showtitle)
+                    title = showtitle
+
+                if mediaType == xbmcmediaimport.MediaTypeSeason:
+                    si = showtitle + se
+                    if se in seasons:
+                        continue
+                    seasons.append(se)
+                    title = showtitle
+                    info['season'] = season
+
+                if mediaType == xbmcmediaimport.MediaTypeEpisode:
+                    info['season'] = season
+                    info['episode'] = episode
+
+            stream_url = None
+            if mediaType == xbmcmediaimport.MediaTypeMovie or mediaType == xbmcmediaimport.MediaTypeEpisode:
+                streamUrlProvider = stream["streamUrlProvider"]
+                stream_url = "plugin://plugin.video.waipu.tv/play-vod?" + urlencode(
+                    {"streamUrlProvider": streamUrlProvider, "title": title, "logo_url": previewImage})
+                info.update({
                     'sorttitle': title,
                     'path': stream_url,
                     'filenameandpath': stream_url
-                    }
+                })
 
-            if "description" in stream and stream['description']:
-                info.update({'plot': stream['description']})
+                if "description" in stream and stream['description']:
+                    info.update({'plot': stream['description']})
 
-            if "genre" in stream and stream['genre']:
-                info.update({'genre': stream['genre']})
+                if "genre" in stream and stream['genre']:
+                    info.update({'genre': stream['genre']})
 
-            if "year" in stream and stream['year']:
-                info.update({'year': stream['year']})
+                if "country" in stream and stream['country']:
+                    info.update({'country': stream['country']})
 
-            if "country" in stream and stream['country']:
-                info.update({'country': stream['country']})
+                if "duration" in stream and stream['duration']:
+                    info.update({'duration': (int(stream['duration']) * 60)})
 
-            if "duration" in stream and stream['duration']:
-                info.update({'duration': (int(stream['duration']) * 60)})
+                if "year" in stream and stream['year']:
+                    info.update({'year': stream['year']})
+
+            info.update({'title': title})
 
             # unassigned options: tag, album, artist, writer, director, lastplayed, placount, mpaa, rating, dateadded, plotoutline
-
+            item = xbmcgui.ListItem(label=title, path=stream_url)
             item.setInfo('video', info)
 
             item.setArt({'poster': previewImage})
@@ -101,29 +143,6 @@ def importItems(handle, mediaType, importSettings, mediaProviderSettings):
             items.append(item)
 
     return items
-
-
-# default method
-def discoverProvider(handle, options):
-    mediatypes = set([xbmcmediaimport.MediaTypeMovie])  # xbmcmediaimport.MediaTypeTvShow
-
-    providerId = "plugin.video.waipu.tv"
-    providerIconUrl = "https://raw.githubusercontent.com/flubshi/plugin.video.waipu.tv/master/icon.png"
-    provider = xbmcmediaimport.MediaProvider(providerId, "plugin://"+providerId, "Waipu.tv / O2 TV", providerIconUrl, mediatypes)
-    provider.setIconUrl(providerIconUrl)
-
-    xbmcmediaimport.setDiscoveredProvider(handle, True, provider)
-
-
-# default method
-def lookupProvider(handle, options):
-    # retrieve the media provider
-    mediaProvider = xbmcmediaimport.getProvider(handle)
-    if not mediaProvider:
-        log('cannot retrieve media provider', xbmc.LOGERROR)
-        return
-
-    xbmcmediaimport.setProviderFound(handle, True)
 
 
 # default method
@@ -147,7 +166,7 @@ def isProviderReady(handle, options):
     if not mediaProvider.prepareSettings():
         log('cannot prepare media provider settings', xbmc.LOGERROR)
         return
-    
+
     addon = xbmcaddon.Addon()
     username = addon.getSetting("username")
     password = addon.getSetting("password")
@@ -190,38 +209,6 @@ def isImportReady(handle, options):
         return
 
     xbmcmediaimport.setImportReady(handle, True)
-
-
-# default method
-def loadProviderSettings(handle, options):
-    # retrieve the media provider
-    mediaProvider = xbmcmediaimport.getProvider(handle)
-    if not mediaProvider:
-        log('cannot retrieve media provider', xbmc.LOGERROR)
-        return
-
-    settings = mediaProvider.getSettings()
-    if not settings:
-        log('cannot retrieve media provider settings', xbmc.LOGERROR)
-        return
-
-    settings.setLoaded()
-
-
-# default method
-def loadImportSettings(handle, options):
-    # retrieve the media import
-    mediaImport = xbmcmediaimport.getImport(handle)
-    if not mediaImport:
-        log('cannot retrieve media import', xbmc.LOGERROR)
-        return
-
-    settings = mediaImport.getSettings()
-    if not settings:
-        log('cannot retrieve media import settings', xbmc.LOGERROR)
-        return
-
-    settings.setLoaded()
 
 
 # default method
@@ -290,11 +277,6 @@ def execImport(handle, options):
             return
         progress += 1
 
-        if mediaType == xbmcmediaimport.MediaTypeVideoCollection and not importCollections:
-            log('importing {} items from {} is disabled'.format(mediaType, mediaProvider2str(mediaProvider)),
-                xbmc.LOGDEBUG)
-            continue
-
         log('importing {} items from {}...'.format(mediaType, mediaProvider2str(mediaProvider)))
 
         xbmcmediaimport.setProgressStatus(handle, mediaType)
@@ -351,19 +333,21 @@ def updateOnProvider(handle, options):
 
 ACTIONS = {
     # official media import callbacks
-    'discoverprovider': discoverProvider,
-    'lookupprovider': lookupProvider,
     'canimport': canImport,
     'isproviderready': isProviderReady,
     'isimportready': isImportReady,
-    'loadprovidersettings': loadProviderSettings,
-    'loadimportsettings': loadImportSettings,
     'canupdatemetadataonprovider': canUpdateMetadataOnProvider,
     'canupdateplaycountonprovider': canUpdatePlaycountOnProvider,
     'canupdatelastplayedonprovider': canUpdateLastPlayedOnProvider,
     'canupdateresumepositiononprovider': canUpdateResumePositionOnProvider,
     'import': execImport,
     'updateonprovider': updateOnProvider
+
+    # unused methods
+    # 'loadprovidersettings': loadProviderSettings,
+    # 'loadimportsettings': loadImportSettings,
+    # 'discoverprovider': discoverProvider,
+    # 'lookupprovider': lookupProvider,
 }
 
 

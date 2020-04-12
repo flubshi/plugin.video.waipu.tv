@@ -11,6 +11,9 @@
 
 <extension point="kodi.mediaimporter" library="importer.py">
    <canlookupprovider>true</canlookupprovider>
+  <automaticallyaddasprovider>
+    <supportedmediatypes>movies tvshows seasons episodes</supportedmediatypes>
+  </automaticallyaddasprovider>
 </extension>
 <extension point="xbmc.python.pluginsource" library="main.py">
   <provides>video</provides>
