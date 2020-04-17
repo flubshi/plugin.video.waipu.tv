@@ -1,0 +1,7 @@
+# ignore intellij
+.idea/*
+
+# ignore python cache
+__pycache__/*
+lib/__pycache__/
+*.pyo
