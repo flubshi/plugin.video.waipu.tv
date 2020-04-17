@@ -2,11 +2,6 @@ import requests
 import time
 import base64
 import json
-
-try:
-    import http.cookiejar
-except ImportError:
-    import cookielib
 import xbmc
 
 
@@ -43,6 +38,10 @@ class WaipuAPI:
 
     def fetchTokenO2(self):
         import mechanize
+        try:
+            import http.cookiejar as cookielib
+        except ImportError:
+            import cookielib
         br = mechanize.Browser()
         cj = cookielib.CookieJar()
         br.set_cookiejar(cj)
