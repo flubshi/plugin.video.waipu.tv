@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # Module: default
-# Author: MiRo
+# Author: flubshi, MiRo
 # Created on: 2018-06-02
 # License: GPL v.3 https://www.gnu.org/copyleft/gpl.html
 
-import sys
 import routing
 from lib.waipu_api import WaipuAPI
 import xbmc
@@ -27,8 +26,11 @@ if not username or not password:
 
 w = WaipuAPI(username, password, provider)
 
-def _T(id):
-    return xbmcaddon.Addon().getLocalizedString(id)
+user_agent = "kodi plugin for waipu.tv (python)"  # "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+
+
+def _T(string_id):
+    return xbmcaddon.Addon().getLocalizedString(string_id)
 
 
 def load_acc_details():
@@ -58,6 +60,7 @@ def load_acc_details():
         else:
             xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
 
+
 @plugin.route('/list-recordings')
 def list_recordings():
     # Set plugin category. It is displayed in some skins as the name
@@ -73,7 +76,7 @@ def list_recordings():
         dialog = xbmcgui.Dialog().ok("Error", str(e))
         return
     b_episodeid = xbmcplugin.getSetting(plugin.handle, "recordings_episode_id") == "true"
-    b_recordingdate = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
+    b_recording_date = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
     # Iterate through categories
     for recording in recordings:
         if 'locked' in recording and recording['locked']:
@@ -104,12 +107,10 @@ def list_recordings():
         else:
             # movie
             label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B]"
-            if b_recordingdate and 'startTime' in recording['epgData'] and recording['epgData']['startTime']:
-                startDate = parser.parse(recording['epgData']['startTime'])
-                label_dat = label_dat + " " + startDate.strftime("(%d.%m.%Y %H:%M)")
-            metadata.update({
-                'title': label_dat
-            })
+            if b_recording_date and 'startTime' in recording['epgData'] and recording['epgData']['startTime']:
+                start_date = parser.parse(recording['epgData']['startTime'])
+                label_dat = label_dat + " " + start_date.strftime("(%d.%m.%Y %H:%M)")
+            metadata.update({'title': label_dat})
 
         list_item = xbmcgui.ListItem(label=label_dat)
         list_item.setInfo('video', metadata)
@@ -132,30 +133,44 @@ def filter_pictograms(data, filter=True):
         return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
     return data
 
-@plugin.route('/play-vod')
-def play_vod():
-    streamUrlProvider = plugin.args['streamUrlProvider'][0]
-    title = plugin.args['title'][0]
-    # logo_url = plugin.args['logo_url'][0]
-    user_agent = "kodi plugin for waipu.tv (python)"
-    
-    stream = w.getUrl(streamUrlProvider)
-    # print("stream: "+str(stream))
 
+def play_inputstream(url, metadata=dict(), art=dict()):
+    title = ''
+    if 'title' in metadata:
+        title = metadata['title']
+        
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
     
-    if "player" in stream and "mpd" in stream["player"]:
-        listitem = xbmcgui.ListItem(title, path=stream["player"]["mpd"])
-        listitem.setMimeType('application/xml+dash')
-        listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
-        listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
-        listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
-        license_str = w.getLicense()
-        listitem.setProperty(is_helper.inputstream_addon + '.license_key',
-                             "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
-        xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
+    listitem = xbmcgui.ListItem(title, path=url)
+    listitem.setInfo('video', metadata)
+    listitem.setArt(art)
+    listitem.setMimeType('application/xml+dash')
+    listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
+    listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
+    listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
+
+    # License update, to be tested...
+    # listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url", get_url(action='renew_token', playouturl=playouturl))
+
+    license_str = w.getLicense()
+    listitem.setProperty(is_helper.inputstream_addon + '.license_key',
+                         "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
+
+    xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
+    return True
+
+
+@plugin.route('/play-vod')
+def play_vod():
+    title = plugin.args['title'][0]
+    
+    stream = w.getUrl(plugin.args['streamUrlProvider'][0])
+    # print("stream: "+str(stream))
+
+    if "player" in stream and "mpd" in stream["player"]:      
+        return play_inputstream(stream["player"]["mpd"], {'title': title})
     else:
         return False
     
@@ -167,13 +182,12 @@ def list_vod_channel():
     xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
     streams = w.getEPGForChannel(channel_id)
     for stream in streams:
-        #print("stream: "+str(stream))
+        # print("stream: "+str(stream))
         title = filter_pictograms(stream["title"])
-        streamUrlProvider = stream["streamUrlProvider"]
                 
-        previewImage=""
+        preview_image=""
         if "previewImages" in stream:
-            previewImage = stream["previewImages"][0] + "?width=200&height=200"
+            preview_image = stream["previewImages"][0] + "?width=200&height=200"
             
         plot = ""
         if "description" in stream:
@@ -184,16 +198,16 @@ def list_vod_channel():
                                     'plot': plot,
                                     'mediatype': 'video'})
 
-        list_item.setArt({'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
+        list_item.setArt({'thumb': preview_image, 'icon': preview_image, 'clearlogo': preview_image})
         list_item.setProperty('IsPlayable', 'true')
-            
 
-        url = plugin.url_for(play_vod, streamUrlProvider=streamUrlProvider,
-                             title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=previewImage)
+        url = plugin.url_for(play_vod, streamUrlProvider=stream["streamUrlProvider"],
+                             title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=preview_image)
         xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
 
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle)
+
 
 @plugin.route('/list-vod-channels')
 def list_vod_channels():
@@ -243,6 +257,7 @@ def list_vod_channels():
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle)
 
+
 @plugin.route('/list-channels')
 def list_channels():
     load_acc_details()
@@ -285,9 +300,8 @@ def list_channels():
         b2 = "[/B]"
         if epg_in_plot and "programs" in data:
             for program in data["programs"]:
-                starttime = parser.parse(program["startTime"]).strftime("%H:%M")
-                plot += "[B]" + starttime + " Uhr:[/B] " + b1 + filter_pictograms(program["title"],
-                                                                                  b_filter) + b2 + "\n"
+                start_time = parser.parse(program["startTime"]).strftime("%H:%M")
+                plot += "[B]" + start_time + " Uhr:[/B] " + b1 + filter_pictograms(program["title"], b_filter) + b2 + "\n"
                 b1 = ""
                 b2 = ""
         elif not epg_in_plot and "programs" in data and len(data["programs"]) > 0:
@@ -320,31 +334,20 @@ def list_channels():
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle)
 
+
 @plugin.route('/play-channel')
 def play_channel():
-    playouturl = plugin.args['playout_url'][0]
     title = plugin.args['title'][0]
     logo_url = plugin.args['logo_url'][0]
 
-    is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
-    if not is_helper.check_inputstream():
-        return False
-
-    user_agent = "kodi plugin for waipu.tv (python)"
-    """
-    Play a video by the provided path.
-
-    :param path: Fully-qualified video URL
-    :type path: str
-    """
-    channel = w.playChannel(playouturl)
+    channel = w.playChannel(plugin.args['playout_url'][0])
     xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
 
     stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
     xbmc.log("stream to be played: " + str(stream_select), level=xbmc.LOGDEBUG)
 
     for stream in channel["streams"]:
-        if (stream["protocol"] == 'mpeg-dash'):
+        if stream["protocol"] == 'mpeg-dash':
             # if (stream["protocol"] == 'hls'):
             for link in stream['links']:
                 path = link["href"]
@@ -358,8 +361,7 @@ def play_channel():
             'Notification("Stream selection","No stream of type \'' + str(stream_select) + '\' found",10000)')
         return
 
-    listitem = xbmcgui.ListItem(channel["channel"], path=path)
-    listitem.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
+    art = {'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url}
 
     metadata = {'title': title, 'mediatype': 'video'}
 
@@ -376,26 +378,13 @@ def play_channel():
         if "description" in current_program and current_program["description"] is not None:
             description += filter_pictograms(current_program["description"], b_filter)
         metadata.update({'plot': description})
+        
+    return play_inputstream(path, metadata, art)
 
-    listitem.setInfo('video', metadata)
-    listitem.setMimeType('application/xml+dash')
-    listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
-    listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
-    listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
-    # License update, to be tested...
-    # listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url", get_url(action='renew_token', playouturl=playouturl))
-
-    license_str = w.getLicense()
-    listitem.setProperty(is_helper.inputstream_addon + '.license_key',
-                         "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
-
-    xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
 
 @plugin.route('/renew-token')
 def renew_token():
-    playouturl = plugin.args['playouturl'][0]
-    # user_agent = "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
-    channel = w.playChannel(playouturl)
+    channel = w.playChannel(plugin.args['playouturl'][0])
     xbmc.log("renew channel token: " + str(channel), level=xbmc.LOGDEBUG)
 
     stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
@@ -403,7 +392,7 @@ def renew_token():
 
     url = ""
     for stream in channel["streams"]:
-        if (stream["protocol"] == 'mpeg-dash'):
+        if stream["protocol"] == 'mpeg-dash':
             # if (stream["protocol"] == 'hls'):
             for link in stream['links']:
                 path = link["href"]
@@ -419,21 +408,14 @@ def renew_token():
     xbmcplugin.addDirectoryItem(plugin.handle, url, listitem)
     xbmcplugin.endOfDirectory(plugin.handle, cacheToDisc=False)
 
+
 @plugin.route('/play-recording')
 def play_recording():
-    recordingid = plugin.args['recording_id'][0]
-    
-    is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
-    if not is_helper.check_inputstream():
-        return False
+    streaming_data = w.playRecording(plugin.args['recording_id'][0])
+    xbmc.log("play recording: " + str(streaming_data), level=xbmc.LOGDEBUG)
 
-    user_agent = "kodi plugin for waipu.tv (python)"
-
-    streamingData = w.playRecording(recordingid)
-    xbmc.log("play recording: " + str(streamingData), level=xbmc.LOGDEBUG)
-
-    for stream in streamingData["streamingDetails"]["streams"]:
-        if (stream["protocol"] == 'MPEG_DASH'):
+    for stream in streaming_data["streamingDetails"]["streams"]:
+        if stream["protocol"] == 'MPEG_DASH':
             path = stream["href"]
             if path:
                 path = path + "|User-Agent=" + user_agent
@@ -445,42 +427,32 @@ def play_recording():
     b_recordingdate = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
     title = ""
     metadata = {'mediatype': 'video'}
-    if streamingData["epgData"]["title"]:
-        title = filter_pictograms(streamingData["epgData"]["title"], b_filter)
-    if streamingData["epgData"]["episodeTitle"]:
-        title = title + ": " + filter_pictograms(streamingData["epgData"]["episodeTitle"], b_filter)
-    if b_recordingdate and not streamingData["epgData"]["episodeId"] and streamingData["epgData"]["startTime"]:
-        startDate = parser.parse(streamingData['epgData']['startTime'])
-        title = title + " " + startDate.strftime("(%d.%m.%Y %H:%M)")
-    if b_episodeid and streamingData['epgData']['season'] and streamingData['epgData']['episode']:
-        title = title + " (S" + streamingData['epgData']['season'] + "E" + streamingData['epgData']['episode'] + ")"
+    if streaming_data["epgData"]["title"]:
+        metadata['title'] = filter_pictograms(streaming_data["epgData"]["title"], b_filter)
+    if streaming_data["epgData"]["episodeTitle"]:
+        title = title + ": " + filter_pictograms(streaming_data["epgData"]["episodeTitle"], b_filter)
+    if b_recordingdate and not streaming_data["epgData"]["episodeId"] and streaming_data["epgData"]["startTime"]:
+        start_date = parser.parse(streaming_data['epgData']['startTime'])
+        title = title + " " + start_date.strftime("(%d.%m.%Y %H:%M)")
+    if b_episodeid and streaming_data['epgData']['season'] and streaming_data['epgData']['episode']:
+        title = title + " (S" + streaming_data['epgData']['season'] + "E" + streaming_data['epgData']['episode'] + ")"
         metadata.update({
-            'season': streamingData['epgData']['season'],
-            'episode': streamingData['epgData']['episode'],
+            'season': streaming_data['epgData']['season'],
+            'episode': streaming_data['epgData']['episode'],
         })
 
     metadata.update({"title": title})
 
-    listitem = xbmcgui.ListItem(title, path=path)
+    if "epgData" in streaming_data and streaming_data["epgData"]["description"]:
+        metadata.update({"plot": filter_pictograms(streaming_data["epgData"]["description"], b_filter)})
 
-    if "epgData" in streamingData and streamingData["epgData"]["description"]:
-        metadata.update({"plot": filter_pictograms(streamingData["epgData"]["description"], b_filter)})
+    art = dict()
+    if "epgData" in streaming_data and len(streaming_data["epgData"]["previewImages"]) > 0:
+        logo_url = streaming_data["epgData"]["previewImages"][0] + "?width=256&height=256"
+        art = {'thumb': logo_url, 'icon': logo_url}
 
-    if "epgData" in streamingData and len(streamingData["epgData"]["previewImages"]) > 0:
-        logo_url = streamingData["epgData"]["previewImages"][0] + "?width=256&height=256"
-        listitem.setArt({'thumb': logo_url, 'icon': logo_url})
+    return play_inputstream(path, metadata, art)
 
-    listitem.setInfo('video', metadata)
-    listitem.setMimeType('application/xml+dash')
-    listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
-    listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
-    listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
-
-    license_str = w.getLicense()
-    listitem.setProperty(is_helper.inputstream_addon + '.license_key',
-                         "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" + user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" + license_str + "|R{SSM}|JBlicense")
-
-    xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
 
 @plugin.route('/')
 def index():
@@ -504,6 +476,7 @@ def index():
 
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle)
+
 
 def run():
     plugin.run()
