@@ -40,7 +40,7 @@ def load_acc_details():
 
     if info_acc != user or (int(time.time()) - int(last_check)) > 15 * 60:
         # load acc details
-        acc_details = w.getAccountDetails()
+        acc_details = w.get_account_details()
         xbmc.log("waipu accdetails: " + str(acc_details), level=xbmc.LOGDEBUG)
         if 'error' in acc_details:
             xbmcaddon.Addon().setSetting('accinfo_status', acc_details["error"])
@@ -52,7 +52,7 @@ def load_acc_details():
             xbmcaddon.Addon().setSetting('accinfo_subscription', acc_details["userAssets"]["account"]["subscription"])
             xbmcaddon.Addon().setSetting('accinfo_lastcheck', str(int(time.time())))
         # load network status
-        status = w.getStatus()
+        status = w.get_status()
         xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
         xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
         if status["statusCode"] == 200:
@@ -71,7 +71,7 @@ def list_recordings():
     xbmcplugin.setContent(plugin.handle, 'videos')
     # Get video categories
     try:
-        recordings = w.getRecordings()
+        recordings = w.get_recordings()
     except Exception as e:
         xbmcgui.Dialog().ok("Error", str(e))
         return
@@ -159,7 +159,7 @@ def play_inputstream(url, metadata=dict(), art=dict()):
     listitem.setProperty(is_helper.inputstream_addon + '.license_key',
                          "https://drm.wpstr.tv/license-proxy-widevine/cenc/|User-Agent=" +
                          user_agent + "&Content-Type=text%2Fxml&x-dt-custom-data=" +
-                         w.getLicense() + "|R{SSM}|JBlicense")
+                         w.get_license() + "|R{SSM}|JBlicense")
 
     xbmcplugin.setResolvedUrl(plugin.handle, True, listitem=listitem)
     return True
@@ -169,7 +169,7 @@ def play_inputstream(url, metadata=dict(), art=dict()):
 def play_vod():
     title = plugin.args['title'][0]
 
-    stream = w.getUrl(plugin.args['streamUrlProvider'][0])
+    stream = w.get_url(plugin.args['streamUrlProvider'][0])
 
     if "player" in stream and "mpd" in stream["player"]:
         return play_inputstream(stream["player"]["mpd"], {'title': title})
@@ -182,7 +182,7 @@ def list_vod_channel():
     channel_id = plugin.args['channel_id'][0]
 
     xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
-    streams = w.getEPGForChannel(channel_id)
+    streams = w.get_epg_for_channel(channel_id)
     for stream in streams:
         # print("stream: "+str(stream))
         title = filter_pictograms(stream["title"])
@@ -226,7 +226,7 @@ def list_vod_channels():
     else:
         epg_hours_future = 0
     try:
-        channels = w.getChannels(epg_hours_future)
+        channels = w.get_channels(epg_hours_future)
     except Exception as e:
         xbmcgui.Dialog().ok("Error", str(e))
         return
@@ -275,7 +275,7 @@ def list_channels():
     else:
         epg_hours_future = 0
     try:
-        channels = w.getChannels(epg_hours_future)
+        channels = w.get_channels(epg_hours_future)
     except Exception as e:
         xbmcgui.Dialog().ok("Error", str(e))
         return
@@ -339,7 +339,7 @@ def play_channel():
     title = plugin.args['title'][0]
     logo_url = plugin.args['logo_url'][0]
 
-    channel = w.playChannel(plugin.args['playout_url'][0])
+    channel = w.play_channel(plugin.args['playout_url'][0])
     xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
 
     stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
@@ -363,7 +363,7 @@ def play_channel():
     metadata = {'title': title, 'mediatype': 'video'}
 
     if xbmcplugin.getSetting(plugin.handle, "metadata_on_play") == "true":
-        current_program = w.getCurrentProgram(channel["channel"])
+        current_program = w.get_current_program(channel["channel"])
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
 
         b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"
@@ -381,7 +381,7 @@ def play_channel():
 
 @plugin.route('/renew-token')
 def renew_token():
-    channel = w.playChannel(plugin.args['playouturl'][0])
+    channel = w.play_channel(plugin.args['playouturl'][0])
     xbmc.log("renew channel token: " + str(channel), level=xbmc.LOGDEBUG)
 
     stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
@@ -406,7 +406,7 @@ def renew_token():
 
 @plugin.route('/play-recording')
 def play_recording():
-    streaming_data = w.playRecording(plugin.args['recording_id'][0])
+    streaming_data = w.play_recording(plugin.args['recording_id'][0])
     xbmc.log("play recording: " + str(streaming_data), level=xbmc.LOGDEBUG)
 
     for stream in streaming_data["streamingDetails"]["streams"]:
