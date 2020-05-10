@@ -13,14 +13,12 @@ class WaipuAPI:
         self.logged_in = False
         self.__username = username
         self.__password = password
-        self.__provider = provider # 0 = waipu, 1 = O2
+        self.__provider = provider  # 0 = waipu, 1 = O2
 
     def fetchToken(self):
         if self.__provider == 0:
-            # waipu
             return self.fetchTokenWaipu()
         else:
-            # O2
             return self.fetchTokenO2()
 
     def fetchTokenWaipu(self):
@@ -48,40 +46,35 @@ class WaipuAPI:
         br.set_handle_equiv(False)
         br.set_handle_robots(False)
         br.addheaders = [('authority', 'o2api.waipu.tv'),
-                         ('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+                         ('User-agent',
+                          'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
         br.set_handle_redirect(mechanize.HTTPRedirectHandler)
-        response = br.open("https://o2api.waipu.tv/api/o2/login/token?redirectUri=https%3A%2F%2Fo2tv.waipu.tv%2F&inWebview=true")
-
-        # print("login resp: "+response.read())
-
+        br.open("https://o2api.waipu.tv/api/o2/login/token?redirectUri=https%3A%2F%2Fo2tv.waipu.tv%2F&inWebview=true")
         br.select_form("Login")
-
         control = br.form.find_control("IDToken1")
         control.value = self.__username
-
         control = br.form.find_control("IDToken2")
         control.value = self.__password
-
         response = br.submit()
-
         response_plain = str(response.read())
-        # print("final-site: " + response_plain)
-
         if response_plain.find("Ihre Eingabe ist ung&uuml;ltig. Falls Sie einen Business Tarif bei") != -1:
             # invalid login credentials
             return 401
-
         for cookie in cj:
             if cookie.name == "user_token":
                 token = str(cookie.value).strip()
                 decoded_token = self.decodeToken(token)
-                # print("Cookie: "+cookie.value)
                 self._auth = {'access_token': token, "expires": decoded_token["exp"]}
 
                 self.logged_in = True
                 return 200
-
         return -1
+
+    def prepareHeaders(self, additional_headers=dict()):
+        headers = {'User-Agent': self.user_agent,
+                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        headers.update(additional_headers)
+        return headers
 
     def getToken(self):
         if self._auth is None or self._auth["expires"] <= time.time():
@@ -101,10 +94,7 @@ class WaipuAPI:
         except TypeError:
             xbmc.log("base64 padding error: " + str(jwtpayload), level=xbmc.LOGERROR)
             raise
-
-        jwt_json = json.loads(jwtpayload_decoded)
-        return jwt_json
-
+        return json.loads(jwtpayload_decoded)
 
     def getAccountDetails(self):
         try:
@@ -136,13 +126,12 @@ class WaipuAPI:
     def getChannels(self, epg_hours_future=0):
         self.getToken()
 
-        starttime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
-        endtime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() + int(epg_hours_future) * 60 * 60))
+        start_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+        end_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() + int(epg_hours_future) * 60 * 60))
 
-        url = "https://epg.waipu.tv/api/programs?includeRunningAtStartTime=true&startTime=" + starttime + "&stopTime=" + endtime
-        headers = {'User-Agent': self.user_agent,
-                   'Accept': 'application/vnd.waipu.epg-channels-and-programs-v1+json',
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        url = "https://epg.waipu.tv/api/programs?includeRunningAtStartTime=true&startTime=" + start_time + \
+              "&stopTime=" + end_time
+        headers = self.prepareHeaders({'Accept': 'application/vnd.waipu.epg-channels-and-programs-v1+json'})
         acc_channels = self.getAccountChannels()
         channels_data = requests.get(url, headers=headers).json()
         channels = []
@@ -154,9 +143,7 @@ class WaipuAPI:
     def getRecordings(self):
         self.getToken()
         url = "https://recording.waipu.tv/api/recordings"
-        headers = {'User-Agent': self.user_agent,
-                   'Accept': 'application/vnd.waipu.recordings-v2+json',
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        headers = self.prepareHeaders({'Accept': 'application/vnd.waipu.recordings-v2+json'})
         r = requests.get(url, headers=headers)
         recordings = []
         if r.status_code == 200:
@@ -166,50 +153,30 @@ class WaipuAPI:
         return recordings
 
     def getStatus(self):
-        url = "https://status.wpstr.tv/status?nw=wifi"
-        headers = {'User-Agent': self.user_agent}
-        r = requests.get(url, headers=headers)
-        return r.json()
+        return requests.get("https://status.wpstr.tv/status?nw=wifi", headers=self.prepareHeaders()).json()
 
     def getCurrentProgram(self, channelId):
-        headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token'],
-                   'Accept': 'application/vnd.waipu.epg-program-v1+json'}
+        headers = self.prepareHeaders({'Accept': 'application/vnd.waipu.epg-program-v1+json'})
         url = "https://epg.waipu.tv/api/channels/" + channelId + "/programs/current"
-        r = requests.get(url, headers=headers)
-        return r.json()
-    
+        return requests.get(url, headers=headers).json()
+
     def getEPGForChannel(self, channelId):
         self.getToken()
-        starttime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() - 3*24 * 60 * 60))
-        endtime = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() + 3*24 * 60 * 60))
-        headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
-        url = "https://epg.waipu.tv/api/channels/" + channelId + "/programs?startTime="+starttime+"&stopTime="+endtime
-        r = requests.get(url, headers=headers)
-        return r.json()
-    
+        start_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() - 3 * 24 * 60 * 60))
+        end_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time() + 3 * 24 * 60 * 60))
+        url = "https://epg.waipu.tv/api/channels/" + channelId + "/programs?startTime=" + start_time + \
+              "&stopTime=" + end_time
+        return requests.get(url, headers=self.prepareHeaders()).json()
+
     def getUrl(self, url):
         self.getToken()
-        headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
-        r = requests.get(url, headers=headers)
-        return r.json()
+        return requests.get(url, headers=self.prepareHeaders()).json()
 
     def playChannel(self, playouturl):
         self.getToken()
-
-        payload = {'network': 'wlan'}
-        headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
-        r = requests.get(playouturl, data=payload, headers=headers)
-        return r.json()
+        return requests.get(playouturl, data={'network': 'wlan'}, headers=self.prepareHeaders()).json()
 
     def playRecording(self, id):
         self.getToken()
         url = "https://recording.waipu.tv/api/recordings/" + str(id)
-        payload = {'network': 'wlan'}
-        headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
-        r = requests.get(url, data=payload, headers=headers)
-        return r.json()
+        return requests.get(url, data={'network': 'wlan'}, headers=self.prepareHeaders()).json()
