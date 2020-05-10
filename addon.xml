@@ -16,12 +16,10 @@
   <summary lang="en">waipu.tv and O2 TV Kodi Video Plugin</summary>
   <description lang="en">An waipu.tv and O2 TV video plugin for Kodi mediacenter. Note: This is not an official waipu plugin and not related to Exaring AG or waipu.tv. It was developed by volunteers.</description>
   <description lang="de">Genießen Sie über 100 TV-Sender von Waipu.tv oder O2 TV im Live-Stream. Hinweis: Dies ist kein offizielles Waipu-Plugin und steht nicht in Verbindung zur Exaring AG oder zu waipu.tv. Es wurde von Freiwilligen entwickelt.</description>
-  <language></language>
   <platform>all</platform>
   <license>GNU GENERAL PUBLIC LICENSE. Version 3, June 2007</license>
-  <forum>https://www.kodinerds.net/index.php/Thread/64586-PreRelease-Video-Plugin-Waipu-tv/</forum>
+  <forum>https://www.kodinerds.net/index.php/Thread/64586-Release-Video-Plugin-Waipu-tv-und-O2-TV-kodinerds-repo/</forum>
   <website>https://www.waipu.tv/</website>
-  <email></email>
   <source>https://github.com/flubshi/plugin.video.waipu.tv</source>
   <assets>
     <icon>icon.png</icon>
@@ -38,31 +36,6 @@
 - 0.3.1 Adjust mechanize dependency to keep Leia compatible
 - 0.3.0 Add python3 support
 - 0.2.9 Display and play active recordings
-- 0.2.8 Add O2 Branding and smaller improvements
-- 0.2.7 Improve O2 error handling (encoding of plus) [thx user alexxx]
-- 0.2.6 Improve O2 error handling (encoding of underscore)
-- 0.2.5 Improve O2 error handling
-- 0.2.4 Implement O2 Authentication [thx user DjLeXuS06]
-- 0.2.3 Fix: recordings are not displayed
-- 0.2.2 rework settings; display account/network status; add metadata; hide locked recordings
-- 0.2.1 improve pictogram filtering; set python krypton compatible; use program order
-- 0.2.0 Add options to remove pictograms, update disclaimer, change user_agent
-- 0.1.3 Provide metadata on channel playback
-- 0.1.2 Show only channels an account can play; code cleanup
-- 0.1.1 Fix: settings option for slider (int)
-- 0.1.0 Fix strings/translations; add stream type selection
-- 0.0.12 Add settings, language support
-- 0.0.11 fix: script.module.dateutil dependency
-- 0.0.10 Add simple epg
-- 0.0.9 TV channels: use sd logos. Recordings: add metadata
-- 0.0.8 Add recordings
-- 0.0.7 Changes from user realvito integrated
-- 0.0.6 Inputstreamhelper support
-- 0.0.5 Bugfix: base64decode padding
-- 0.0.4 Ask for login credentials; Add DRM channels (experimental)
-- 0.0.3 First implemantation of DRM (not working)
-- 0.0.2 Show Channel Logos
-- 0.0.1 Initial alpha version
   </news>
 </extension>
 </addon>
