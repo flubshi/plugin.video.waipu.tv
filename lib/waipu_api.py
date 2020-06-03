@@ -181,3 +181,8 @@ class WaipuAPI:
         self.get_token()
         url = "https://recording.waipu.tv/api/recordings/" + str(id)
         return requests.get(url, data={'network': 'wlan'}, headers=self.prepare_headers()).json()
+    
+    def open_eu_network(self):
+        self.get_token()
+        url = "https://eunet.waipu.tv/api/open-eu-network"
+        return requests.post(url, headers=self.prepare_headers()).status_code
