@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.8.2" provider-name="flubshi, MiRo">
+<addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.8.3" provider-name="flubshi, MiRo">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
@@ -29,6 +29,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
+- 0.8.3 Implement access eu network; adapt inputstream call
 - 0.8.2 Internal clean up
 - 0.8.1 Fix O2 TV
 - 0.8.0 Python3 compatibility
