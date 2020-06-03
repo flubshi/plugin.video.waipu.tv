@@ -154,7 +154,8 @@ class WaipuAPI:
         return recordings
 
     def get_status(self):
-        return requests.get("https://status.wpstr.tv/status?nw=wifi", headers=self.prepare_headers()).json()
+        jwt_json = self.decode_token(self.get_token())
+        return requests.get("https://status.wpstr.tv/status?uh="+str(jwt_json["userHandle"]), headers=self.prepare_headers()).json()
 
     def get_current_program(self, channelId):
         headers = self.prepare_headers({'Accept': 'application/vnd.waipu.epg-program-v1+json'})
@@ -181,3 +182,8 @@ class WaipuAPI:
         self.get_token()
         url = "https://recording.waipu.tv/api/recordings/" + str(id)
         return requests.get(url, data={'network': 'wlan'}, headers=self.prepare_headers()).json()
+    
+    def open_eu_network(self):
+        self.get_token()
+        url = "https://eunet.waipu.tv/api/open-eu-network"
+        return requests.post(url, headers=self.prepare_headers()).status_code

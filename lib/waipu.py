@@ -56,9 +56,16 @@ def load_acc_details():
         xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
         xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
         if status["statusCode"] == 200:
+            # direct access
             xbmcaddon.Addon().setSetting('accinfo_network', "Waipu verfügbar")
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
+        elif status["isEuMobilityNetwork"]:
+            # via eu
+            xbmcaddon.Addon().setSetting('accinfo_network', "Via EU mobility verfügbar")
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'true')
         else:
             xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
 
 
 @plugin.route('/list-recordings')
@@ -144,6 +151,10 @@ def play_inputstream(url, metadata=dict(), art=dict()):
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
+    
+    # check if we need to call EU:
+    if xbmcplugin.getSetting(plugin.handle, "acc_needs_open_eu") == "true":
+        w.open_eu_network() # TODO: check for response code 200
 
     listitem = xbmcgui.ListItem(title, path=url)
     listitem.setInfo('video', metadata)
