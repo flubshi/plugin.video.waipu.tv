@@ -154,7 +154,8 @@ class WaipuAPI:
         return recordings
 
     def get_status(self):
-        return requests.get("https://status.wpstr.tv/status?nw=wifi", headers=self.prepare_headers()).json()
+        jwt_json = self.decode_token(self.get_token())
+        return requests.get("https://status.wpstr.tv/status?uh="+str(jwt_json["userHandle"]), headers=self.prepare_headers()).json()
 
     def get_current_program(self, channelId):
         headers = self.prepare_headers({'Accept': 'application/vnd.waipu.epg-program-v1+json'})
