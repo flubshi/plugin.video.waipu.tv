@@ -54,9 +54,16 @@ def load_acc_details():
         xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
         xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
         if status["statusCode"] == 200:
+            # direct access
             xbmcaddon.Addon().setSetting('accinfo_network', "Waipu verfügbar")
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
+        elif status["isEuMobilityNetwork"]:
+            # via eu
+            xbmcaddon.Addon().setSetting('accinfo_network', "Via EU mobility verfügbar")
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'true')
         else:
             xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
+            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
 
 @plugin.route('/list-recordings')
 def list_recordings():
@@ -132,6 +139,7 @@ def filter_pictograms(data, filter=True):
         return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
     return data
 
+
 @plugin.route('/play-vod')
 def play_vod():
     streamUrlProvider = plugin.args['streamUrlProvider'][0]
@@ -145,6 +153,10 @@ def play_vod():
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
+
+    # check if we need to call EU:
+    if xbmcplugin.getSetting(plugin.handle, "acc_needs_open_eu") == "true":
+        w.open_eu_network() # TODO: check for response code 200
     
     if "player" in stream and "mpd" in stream["player"]:
         listitem = xbmcgui.ListItem(title, path=stream["player"]["mpd"])
@@ -330,6 +342,10 @@ def play_channel():
     if not is_helper.check_inputstream():
         return False
 
+    # check if we need to call EU:
+    if xbmcplugin.getSetting(plugin.handle, "acc_needs_open_eu") == "true":
+        w.open_eu_network() # TODO: check for response code 200
+
     user_agent = "kodi plugin for waipu.tv (python)"
     """
     Play a video by the provided path.
@@ -426,6 +442,10 @@ def play_recording():
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
+
+    # check if we need to call EU:
+    if xbmcplugin.getSetting(plugin.handle, "acc_needs_open_eu") == "true":
+        w.open_eu_network() # TODO: check for response code 200
 
     user_agent = "kodi plugin for waipu.tv (python)"
 
