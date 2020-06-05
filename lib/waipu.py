@@ -44,26 +44,27 @@ def load_acc_details():
             xbmcaddon.Addon().setSetting('accinfo_status', acc_details["error"])
             xbmcaddon.Addon().setSetting('accinfo_account', "-")
             xbmcaddon.Addon().setSetting('accinfo_subscription', "-")
+            xbmcaddon.Addon().setSetting('accinfo_network', "-")
         else:
             xbmcaddon.Addon().setSetting('accinfo_status', "Angemeldet")
             xbmcaddon.Addon().setSetting('accinfo_account', acc_details["sub"])
             xbmcaddon.Addon().setSetting('accinfo_subscription', acc_details["userAssets"]["account"]["subscription"])
             xbmcaddon.Addon().setSetting('accinfo_lastcheck', str(int(time.time())))
-        # load network status
-        status = w.getStatus()
-        xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
-        xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
-        if status["statusCode"] == 200:
-            # direct access
-            xbmcaddon.Addon().setSetting('accinfo_network', "Waipu verfügbar")
-            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
-        elif status["isEuMobilityNetwork"]:
-            # via eu
-            xbmcaddon.Addon().setSetting('accinfo_network', "Via EU mobility verfügbar")
-            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'true')
-        else:
-            xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
-            xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
+            # load network status
+            status = w.getStatus()
+            xbmc.log("waipu status: " + str(status), level=xbmc.LOGDEBUG)
+            xbmcaddon.Addon().setSetting('accinfo_network_ip', status["ip"])
+            if status["statusCode"] == 200:
+                # direct access
+                xbmcaddon.Addon().setSetting('accinfo_network', "Waipu verfügbar")
+                xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
+            elif status["isEuMobilityNetwork"]:
+                # via eu
+                xbmcaddon.Addon().setSetting('accinfo_network', "Via EU mobility verfügbar")
+                xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'true')
+            else:
+                xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
+                xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
 
 @plugin.route('/list-recordings')
 def list_recordings():
