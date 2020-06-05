@@ -167,7 +167,7 @@ class WaipuAPI:
         return recordings
 
     def getStatus(self):
-        jwt_json = self.decode_token(self.get_token())
+        jwt_json = self.decodeToken(self.getToken())
         url = "https://status.wpstr.tv/status?uh="+str(jwt_json["userHandle"])
         headers = {'User-Agent': self.user_agent}
         r = requests.get(url, headers=headers)
