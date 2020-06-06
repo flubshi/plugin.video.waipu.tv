@@ -167,7 +167,8 @@ class WaipuAPI:
         return recordings
 
     def getStatus(self):
-        url = "https://status.wpstr.tv/status?nw=wifi"
+        jwt_json = self.decodeToken(self.getToken())
+        url = "https://status.wpstr.tv/status?uh="+str(jwt_json["userHandle"])
         headers = {'User-Agent': self.user_agent}
         r = requests.get(url, headers=headers)
         return r.json()
@@ -214,3 +215,10 @@ class WaipuAPI:
                    'Authorization': 'Bearer ' + self._auth['access_token']}
         r = requests.get(url, data=payload, headers=headers)
         return r.json()
+    
+    def open_eu_network(self):
+        self.getToken()
+        url = "https://eunet.waipu.tv/api/open-eu-network"
+        headers = {'User-Agent': self.user_agent,
+                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        return requests.post(url, headers=headers).status_code
