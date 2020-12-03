@@ -155,7 +155,8 @@ class WaipuAPI:
 
     def get_status(self):
         jwt_json = self.decode_token(self.get_token())
-        return requests.get("https://status.wpstr.tv/status?uh="+str(jwt_json["userHandle"]), headers=self.prepare_headers()).json()
+        return requests.get("https://status.wpstr.tv/status?uh=" + str(jwt_json["userHandle"]),
+                            headers=self.prepare_headers()).json()
 
     def get_current_program(self, channelId):
         headers = self.prepare_headers({'Accept': 'application/vnd.waipu.epg-program-v1+json'})
@@ -174,15 +175,20 @@ class WaipuAPI:
         self.get_token()
         return requests.get(url, headers=self.prepare_headers()).json()
 
-    def play_channel(self, playouturl):
+    def play_channel(self, channel_id):
         self.get_token()
-        return requests.get(playouturl, data={'network': 'wlan'}, headers=self.prepare_headers()).json()
+        req_data = '{"stream": {"station": "' + str(
+            channel_id) + '", "protocol": "dash", "requestMuxInstrumentation": false}}'
+        xbmc.log("req_data: " + str(req_data), level=xbmc.LOGDEBUG)
+        headers = self.prepare_headers({"Content-Type": "application/vnd.streamurlprovider.stream-url-request-v1+json"})
+        return requests.post("https://stream-url-provider.waipu.tv/api/stream-url", data=req_data,
+                             headers=headers).json()
 
     def play_recording(self, id):
         self.get_token()
         url = "https://recording.waipu.tv/api/recordings/" + str(id)
         return requests.get(url, data={'network': 'wlan'}, headers=self.prepare_headers()).json()
-    
+
     def open_eu_network(self):
         self.get_token()
         url = "https://eunet.waipu.tv/api/open-eu-network"
