@@ -33,12 +33,12 @@ def _T(string_id):
     return xbmcaddon.Addon().getLocalizedString(string_id)
 
 
-def load_acc_details():
+def load_acc_details(force=False):
     last_check = xbmcplugin.getSetting(plugin.handle, "accinfo_lastcheck")
     info_acc = xbmcplugin.getSetting(plugin.handle, "accinfo_account")
     user = xbmcplugin.getSetting(plugin.handle, "username")
 
-    if info_acc != user or (int(time.time()) - int(last_check)) > 15 * 60:
+    if force or info_acc != user or (int(time.time()) - int(last_check)) > 15 * 60:
         # load acc details
         acc_details = w.get_account_details()
         xbmc.log("waipu accdetails: " + str(acc_details), level=xbmc.LOGDEBUG)
@@ -66,6 +66,11 @@ def load_acc_details():
         else:
             xbmcaddon.Addon().setSetting('accinfo_network', status["statusText"])
             xbmcaddon.Addon().setSetting('acc_needs_open_eu', 'false')
+
+
+@plugin.route('/status-refresh')
+def status_refresh():
+    load_acc_details(force=True)
 
 
 @plugin.route('/list-recordings')
@@ -151,7 +156,7 @@ def play_inputstream(url, metadata=dict(), art=dict()):
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
         return False
-    
+
     # check if we need to call EU:
     if xbmcplugin.getSetting(plugin.handle, "acc_needs_open_eu") == "true":
         w.open_eu_network() # TODO: check for response code 200
@@ -327,16 +332,13 @@ def list_channels():
                                     'plot': plot,
                                     'mediatype': 'video'})
         logo_url = ""
-        livePlayoutURL = ""
         for link in channel["links"]:
             if link["rel"] == "iconsd":
                 logo_url = link["href"] + "?width=200&height=200"
-            if link["rel"] == "livePlayout":
-                livePlayoutURL = link["href"]
 
         list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = plugin.url_for(play_channel, playout_url=livePlayoutURL,
+        url = plugin.url_for(play_channel, channel_id=channel["id"],
                              title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=logo_url)
         xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
@@ -349,32 +351,16 @@ def list_channels():
 def play_channel():
     title = plugin.args['title'][0]
     logo_url = plugin.args['logo_url'][0]
+    channel_id = plugin.args['channel_id'][0]
 
-    channel = w.play_channel(plugin.args['playout_url'][0])
-    xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
-
-    stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
-    xbmc.log("stream to be played: " + str(stream_select), level=xbmc.LOGDEBUG)
-
-    for stream in channel["streams"]:
-        if stream["protocol"] == 'mpeg-dash':
-            for link in stream['links']:
-                path = link["href"]
-                rel = link["rel"]
-                if path and (stream_select == "auto" or rel == stream_select):
-                    path = path + "|User-Agent=" + user_agent
-                    xbmc.log("selected stream: " + str(link), level=xbmc.LOGDEBUG)
-                    break
-    if not path:
-        xbmc.executebuiltin(
-            'Notification("Stream selection","No stream of type \'' + str(stream_select) + '\' found",10000)')
-        return
+    stream_resp = w.play_channel(channel_id)
+    xbmc.log("play channel (stream resp): " + str(stream_resp), level=xbmc.LOGDEBUG)
 
     art = {'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url}
     metadata = {'title': title, 'mediatype': 'video'}
 
     if xbmcplugin.getSetting(plugin.handle, "metadata_on_play") == "true":
-        current_program = w.get_current_program(channel["channel"])
+        current_program = w.get_current_program(channel_id)
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
 
         b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"
@@ -387,7 +373,7 @@ def play_channel():
             description += filter_pictograms(current_program["description"], b_filter)
         metadata.update({'plot': description})
 
-    return play_inputstream(path, metadata, art)
+    return play_inputstream(stream_resp["streamUrl"], metadata, art)
 
 
 @plugin.route('/renew-token')
