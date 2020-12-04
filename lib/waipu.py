@@ -317,16 +317,13 @@ def list_channels():
                                     'plot': plot,
                                     'mediatype': 'video'})
         logo_url = ""
-        livePlayoutURL = ""
         for link in channel["links"]:
             if link["rel"] == "iconsd":
                 logo_url = link["href"] + "?width=200&height=200"
-            if link["rel"] == "livePlayout":
-                livePlayoutURL = link["href"]
 
         list_item.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
         list_item.setProperty('IsPlayable', 'true')
-        url = plugin.url_for(play_channel, playout_url=livePlayoutURL, title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=logo_url)
+        url = plugin.url_for(play_channel, channel_id=channel["id"], title=title.encode('ascii', 'ignore').decode('ascii'), logo_url=logo_url)
         xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
@@ -335,9 +332,9 @@ def list_channels():
 
 @plugin.route('/play-channel')
 def play_channel():
-    playouturl = plugin.args['playout_url'][0]
     title = plugin.args['title'][0]
     logo_url = plugin.args['logo_url'][0]
+    channel_id = plugin.args['channel_id'][0]
 
     is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if not is_helper.check_inputstream():
@@ -354,34 +351,21 @@ def play_channel():
     :param path: Fully-qualified video URL
     :type path: str
     """
-    channel = w.playChannel(playouturl)
-    xbmc.log("play channel: " + str(channel), level=xbmc.LOGDEBUG)
+    stream_resp = w.playChannel(channel_id)
+    xbmc.log("play channel (stream resp): " + str(stream_resp), level=xbmc.LOGDEBUG)
 
-    stream_select = xbmcplugin.getSetting(plugin.handle, "stream_select")
-    xbmc.log("stream to be played: " + str(stream_select), level=xbmc.LOGDEBUG)
-
-    for stream in channel["streams"]:
-        if (stream["protocol"] == 'mpeg-dash'):
-            # if (stream["protocol"] == 'hls'):
-            for link in stream['links']:
-                path = link["href"]
-                rel = link["rel"]
-                if path and (stream_select == "auto" or rel == stream_select):
-                    path = path + "|User-Agent=" + user_agent
-                    xbmc.log("selected stream: " + str(link), level=xbmc.LOGDEBUG)
-                    break
-    if not path:
+    if "streamUrl" not in stream_resp:
         xbmc.executebuiltin(
             'Notification("Stream selection","No stream of type \'' + str(stream_select) + '\' found",10000)')
         return
 
-    listitem = xbmcgui.ListItem(channel["channel"], path=path)
+    listitem = xbmcgui.ListItem(channel_id, path=stream_resp["streamUrl"])
     listitem.setArt({'thumb': logo_url, 'icon': logo_url, 'clearlogo': logo_url})
 
     metadata = {'title': title, 'mediatype': 'video'}
 
     if xbmcplugin.getSetting(plugin.handle, "metadata_on_play") == "true":
-        current_program = w.getCurrentProgram(channel["channel"])
+        current_program = w.getCurrentProgram(channel_id)
         xbmc.log("play channel metadata: " + str(current_program), level=xbmc.LOGDEBUG)
 
         b_filter = xbmcplugin.getSetting(plugin.handle, "filter_pictograms") == "true"

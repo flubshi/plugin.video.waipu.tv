@@ -198,13 +198,15 @@ class WaipuAPI:
         r = requests.get(url, headers=headers)
         return r.json()
 
-    def playChannel(self, playouturl):
+    def playChannel(self, channel_id):
         self.getToken()
 
-        payload = {'network': 'wlan'}
+        payload = '{"stream": {"station": "' + str(
+            channel_id) + '", "protocol": "dash", "requestMuxInstrumentation": false}}'
         headers = {'User-Agent': self.user_agent,
+                   'Content-Type': 'application/vnd.streamurlprovider.stream-url-request-v1+json',
                    'Authorization': 'Bearer ' + self._auth['access_token']}
-        r = requests.get(playouturl, data=payload, headers=headers)
+        r = requests.post('https://stream-url-provider.waipu.tv/api/stream-url', data=payload, headers=headers)
         return r.json()
 
     def playRecording(self, id):
