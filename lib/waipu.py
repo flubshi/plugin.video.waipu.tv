@@ -14,11 +14,14 @@ import inputstreamhelper
 import time
 from dateutil import parser
 
+class ItemClass(object):
+    pass
+
 plugin = routing.Plugin()
 
-username = xbmcplugin.getSetting(plugin.handle, "username")
-password = xbmcplugin.getSetting(plugin.handle, "password")
-provider = int(xbmcplugin.getSetting(plugin.handle, "provider_select"))
+username = xbmcaddon.Addon().getSetting("username")
+password = xbmcaddon.Addon().getSetting("password")
+provider = int(xbmcaddon.Addon().getSetting("provider_select"))
 
 # open settings,
 if not username or not password:
@@ -28,6 +31,13 @@ w = WaipuAPI(username, password, provider)
 
 user_agent = "kodi plugin for waipu.tv (python)"  # "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
 
+itemList = []
+
+def itemExits(assetID, aList):
+    for aItem in aList:
+        if (aItem.assetId == assetID):
+            return True
+    return False
 
 def _T(string_id):
     return xbmcaddon.Addon().getLocalizedString(string_id)
@@ -75,6 +85,9 @@ def status_refresh():
 
 @plugin.route('/list-recordings')
 def list_recordings():
+    # get filter for sub-folders
+    s_filter = plugin.args['s_filter'][0]
+
     # Set plugin category. It is displayed in some skins as the name
     # of the current section.
     xbmcplugin.setPluginCategory(plugin.handle, 'waipu.tv')
@@ -88,59 +101,165 @@ def list_recordings():
         xbmcgui.Dialog().ok("Error", str(e))
         return
     b_episodeid = xbmcplugin.getSetting(plugin.handle, "recordings_episode_id") == "true"
-    b_recording_date = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
+    b_recordingdate = xbmcplugin.getSetting(plugin.handle, "recordings_date") == "true"
+
+    # clear list
+    itemList = []
+
     # Iterate through categories
     for recording in recordings:
         if 'locked' in recording and recording['locked']:
             continue
-        label_dat = ''
-        if recording['status'] == "RECORDING":
-            label_dat = '[COLOR red][REC][/COLOR] '
 
-        metadata = {
-            'genre': recording['epgData']['genre'],
-            'plot': recording['epgData']['description'],
-            'mediatype': 'video'}
+        # check we have a filter
+        if(s_filter != "0"):
+            # skip itens, if wrong assetId
+            if(recording['epgData']["assetId"] != s_filter):
+                continue
 
-        if "episodeId" in recording['epgData'] and recording['epgData']['episodeId']:
-            # tv show
-            if recording['epgData']['episodeTitle']:
-                metadata.update({"tvshowtitle": recording['epgData']['episodeTitle']})
-                label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B] - " + recording['epgData'][
-                    'episodeTitle']
-            else:
-                label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B]"
-            if b_episodeid and recording['epgData']['season'] and recording['epgData']['episode']:
-                label_dat = label_dat + " (S" + recording['epgData']['season'] + "E" + recording['epgData'][
-                    'episode'] + ")"
-            metadata.update({
-                'title': label_dat,
-                'season': recording['epgData']['season'],
-                'episode': recording['epgData']['episode'],
-            })
-        else:
-            # movie
-            label_dat = label_dat + "[B]" + recording['epgData']['title'] + "[/B]"
-            if b_recording_date and 'startTime' in recording['epgData'] and recording['epgData']['startTime']:
-                start_date = parser.parse(recording['epgData']['startTime'])
-                label_dat = label_dat + " " + start_date.strftime("(%d.%m.%Y %H:%M)")
-            metadata.update({'title': label_dat})
+        # new item
+        item = ItemClass()
 
-        list_item = xbmcgui.ListItem(label=label_dat)
-        list_item.setInfo('video', metadata)
+        item.recordID = recording["id"]
+        item.status = recording['status']
+
+        item.title = recording['epgData']['title']
+        item.channel = recording['epgData']['channel']
+        item.genre = recording['epgData']['genre']
+        item.description = recording['epgData']['description']
+
+        item.assetId = recording['epgData']["assetId"]
+        item.episodeId = recording['epgData']['episodeId']
+        item.episodeTitle = recording['epgData']['episodeTitle']
+        item.episode = recording['epgData']['episode']
+        item.season = recording['epgData']['season']
+
+        item.startTime = parser.parse(recording['epgData']['startTime'])
 
         for previewImage in recording['epgData']['previewImages']:
-            previewImage += "?width=200&height=200"
-            xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
-            list_item.setArt(
-                {'thumb': previewImage, 'icon': previewImage, 'clearlogo': previewImage})
+            item.previewImage = previewImage + "?width=200&height=200"
             break
-        list_item.setProperty('IsPlayable', 'true')
-        url = plugin.url_for(play_recording, recording_id=recording["id"])
-        xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
-    # Finish creating a virtual folder.
-    xbmcplugin.endOfDirectory(plugin.handle)
 
+        item.count = 1
+
+        # check if we are in the overview of recordings
+        if (s_filter == "0"):
+            # new item
+            if not itemExits(item.assetId, itemList):
+                itemList.append(item)
+            else:
+                # item exist, inc counter
+                for aItem in itemList:
+                    if (aItem.assetId in item.assetId):
+                        aItem.count = aItem.count + 1
+        else:
+            # not the overview, so add all items
+            itemList.append(item)
+
+    # how many items?
+    #xbmc.log("waipu test: " + str(len(itemList)), level=xbmc.LOGDEBUG)
+
+    # enumerate through list
+    for item in itemList:
+
+        # check for more than 1 recording
+        if(item.count > 1) and (s_filter == "0"):
+            list_item = xbmcgui.ListItem(label= "[B]" +  item.title +  "[/B]" +  " - " + str(item.count) + " " + _T(32031))
+
+            if(item.previewImage is not None):
+                xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
+                list_item.setArt(
+                    {'thumb': item.previewImage, 'icon': item.previewImage, 'clearlogo': item.previewImage})
+
+            metadata = {
+                'genre': item.genre,
+                'mediatype': 'video'}
+
+            list_item.setInfo('video', metadata)
+            xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_recordings, s_filter=item.assetId), list_item, isFolder=True)
+
+        else:
+            # normal display
+            label_dat = ''
+
+            # reocord is runing
+            if item.status == "RECORDING":
+                label_dat = '[COLOR red][REC][/COLOR] '
+
+            metadata = {
+                'genre': item.genre,
+                'plot': item.description,
+                'mediatype': 'video'}
+
+            if item.episodeId is not None:
+                # tv show
+                if item.episodeTitle is not None:
+                    metadata.update({"tvshowtitle": item.episodeTitle})
+                    label_dat = label_dat + "[B]" + item.title + "[/B] - " + item.episodeTitle
+                else:
+                    label_dat = label_dat + "[B]" + item.title + "[/B]"
+
+                if b_episodeid and (item.season is not None) and (item.episode is not None):
+                    label_dat = label_dat + " (S"+ item.season + "E"+ item.episode +")"
+
+                # add record date/time
+                if b_recordingdate and (item.startTime is not None):
+                    label_dat = label_dat + " " + item.startTime.strftime("(%d.%m.%Y %H:%M)")
+
+                metadata.update({
+                    'title': label_dat,
+                    'season': item.season,
+                    'episode': item.episode,
+                })
+            else:
+                # movie
+                label_dat = label_dat + "[B]" + item.title + "[/B]"
+
+                # add record date/time
+                if b_recordingdate and (item.startTime is not None):
+                    label_dat = label_dat + " " + item.startTime.strftime("(%d.%m.%Y %H:%M)")
+
+                metadata.update({
+                    'title': label_dat
+                })
+
+            list_item = xbmcgui.ListItem(label=label_dat)
+            list_item.setInfo('video', metadata)
+
+            if(item.previewImage is not None):
+                xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
+                list_item.setArt(
+                    {'thumb': item.previewImage, 'icon': item.previewImage, 'clearlogo': item.previewImage})
+
+            list_item.setProperty('IsPlayable', 'true')
+            url = plugin.url_for(play_recording, recording_id= item.recordID)
+
+            list_item.addContextMenuItems([(_T(32041), 'RunPlugin(%s?recording_id=%s&title=%s)' % (plugin.url_for(delete_recordings), item.recordID, label_dat))])
+            xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
+
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(plugin.handle, cacheToDisc=False)
+
+@plugin.route('/delete-recordings')
+def delete_recordings():
+
+    # get filter for sub-folders
+    s_recordId = plugin.args['recording_id'][0]
+    # get title
+    s_title = plugin.args['title'][0]
+
+    ok = xbmcgui.Dialog().yesno(xbmcaddon.Addon().getAddonInfo('name'), _T(32040) + ":\n" + _T(32041) + "\n" + s_title + "?")
+
+    if (ok):
+        result = w.deleteRecordings(s_recordId)
+        xbmc.log("waipu DELETE " + s_recordId + " result = " + str(result), level=xbmc.LOGDEBUG)
+
+        xbmc.executebuiltin('Container.Refresh')
+
+def filter_pictograms(data, filter=True):
+    if filter:
+        return ''.join(c for c in data if ord(c) < 0x25A0 or ord(c) > 0x1F5FF)
+    return data
 
 def filter_pictograms(data, apply_filter=True):
     if apply_filter:
@@ -464,7 +583,7 @@ def index():
 
     # recordings list
     list_item = xbmcgui.ListItem(label=_T(32031))
-    xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_recordings), list_item, isFolder=True)
+    xbmcplugin.addDirectoryItem(plugin.handle, plugin.url_for(list_recordings, s_filter="0"), list_item, isFolder=True)
 
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle)

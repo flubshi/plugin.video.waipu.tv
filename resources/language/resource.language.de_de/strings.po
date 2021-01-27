@@ -113,3 +113,11 @@ msgstr "Waipu.tv"
 msgctxt "#32027"
 msgid "O2 TV"
 msgstr "O2 TV"
+
+msgctxt "#32040"
+msgid "Confirm"
+msgstr "Bestätige"
+
+msgctxt "#32041"
+msgid "Delete recording"
+msgstr "Löschen der Aufnahme"

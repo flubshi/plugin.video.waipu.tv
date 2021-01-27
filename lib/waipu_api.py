@@ -193,3 +193,20 @@ class WaipuAPI:
         self.get_token()
         url = "https://eunet.waipu.tv/api/open-eu-network"
         return requests.post(url, headers=self.prepare_headers()).status_code
+
+    def deleteRecordings(self, recordId):
+        self.get_token()
+        url = "https://recording.waipu.tv/api/recordings"
+
+        recList = []
+        recList.append(recordId)
+
+        payload = {'ids': recList}
+        headers = {'User-Agent': self.user_agent,
+                   'Referer' : 'https://play.waipu.tv/aufnahmen',
+                   'content-type' : 'application/vnd.waipu.pvr-recording-ids-v2+json',
+                   'Accept': 'application/vnd.waipu.recordings-v2+json',
+                   'Authorization': 'Bearer ' + self._auth['access_token']}
+
+        r = requests.delete(url, data=json.dumps(payload), headers=headers)
+        return r.status_code
