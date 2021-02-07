@@ -114,7 +114,7 @@ def list_recordings():
         # check we have a filter
         if(s_filter != "0"):
             # skip itens, if wrong assetId
-            if(recording['epgData']["assetId"] != s_filter):
+            if recording['epgData']["assetId"] != s_filter:
                 continue
 
         # new item
