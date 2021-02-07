@@ -234,15 +234,15 @@ def list_recordings():
             list_item.setProperty('IsPlayable', 'true')
             url = plugin.url_for(play_recording, recording_id= item.recordID)
 
-            list_item.addContextMenuItems([(_T(32041), 'RunPlugin(%s?recording_id=%s&title=%s)' % (plugin.url_for(delete_recordings), item.recordID, label_dat))])
+            list_item.addContextMenuItems([(_T(32041), 'RunPlugin(%s?recording_id=%s&title=%s)' % (plugin.url_for(delete_recording), item.recordID, label_dat))])
             xbmcplugin.addDirectoryItem(plugin.handle, url, list_item, isFolder=False)
 
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(plugin.handle, cacheToDisc=False)
 
-@plugin.route('/delete-recordings')
-def delete_recordings():
-    # get filter for sub-folders
+@plugin.route('/delete-recording')
+def delete_recording():
+    # get record ID
     s_recordId = plugin.args['recording_id'][0]
     # get title
     s_title = plugin.args['title'][0]
@@ -250,7 +250,7 @@ def delete_recordings():
     ok = xbmcgui.Dialog().yesno(xbmcaddon.Addon().getAddonInfo('name'), _T(32040) + ":\n" + _T(32041) + "\n" + s_title + "?")
 
     if ok:
-        result = w.deleteRecordings(s_recordId)
+        result = w.deleteRecording(s_recordId)
         xbmc.log("waipu DELETE " + s_recordId + " result = " + str(result), level=xbmc.LOGDEBUG)
 
         xbmc.executebuiltin('Container.Refresh')

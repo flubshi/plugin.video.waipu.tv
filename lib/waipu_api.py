@@ -194,7 +194,7 @@ class WaipuAPI:
         url = "https://eunet.waipu.tv/api/open-eu-network"
         return requests.post(url, headers=self.prepare_headers()).status_code
 
-    def deleteRecordings(self, recordId):
+    def deleteRecording(self, recordId):
         self.get_token()
         url = "https://recording.waipu.tv/api/recordings"
 
