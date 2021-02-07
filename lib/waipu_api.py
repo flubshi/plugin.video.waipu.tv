@@ -193,3 +193,13 @@ class WaipuAPI:
         self.get_token()
         url = "https://eunet.waipu.tv/api/open-eu-network"
         return requests.post(url, headers=self.prepare_headers()).status_code
+
+    def deleteRecording(self, recordId):
+        self.get_token()
+        url = "https://recording.waipu.tv/api/recordings"
+
+        payload = {'ids': [recordId]}
+        headers = self.prepare_headers({'content-type' : 'application/vnd.waipu.pvr-recording-ids-v2+json', 'Accept': 'application/vnd.waipu.recordings-v2+json'})
+
+        r = requests.delete(url, data=json.dumps(payload), headers=headers)
+        return r.status_code

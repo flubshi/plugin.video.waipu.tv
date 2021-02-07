@@ -113,3 +113,11 @@ msgstr ""
 msgctxt "#32027"
 msgid "O2 TV"
 msgstr ""
+
+msgctxt "#32040"
+msgid "Confirm"
+msgstr ""
+
+msgctxt "#32041"
+msgid "Delete recording"
+msgstr ""
