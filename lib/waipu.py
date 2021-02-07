@@ -150,7 +150,7 @@ def list_recordings():
             else:
                 # item exist, inc counter
                 for aItem in itemList:
-                    if (aItem.assetId in item.assetId):
+                    if aItem.assetId in item.assetId:
                         aItem.count = aItem.count + 1
         else:
             # not the overview, so add all items
