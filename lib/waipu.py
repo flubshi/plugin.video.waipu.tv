@@ -35,7 +35,7 @@ itemList = []
 
 def itemExits(assetID, aList):
     for aItem in aList:
-        if (aItem.assetId == assetID):
+        if aItem.assetId == assetID:
             return True
     return False
 
