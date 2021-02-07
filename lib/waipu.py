@@ -166,7 +166,7 @@ def list_recordings():
         if item.count > 1 and s_filter == "0":
             list_item = xbmcgui.ListItem(label= "[B]" +  item.title +  "[/B]" +  " - " + str(item.count) + " " + _T(32031))
 
-            if(item.previewImage is not None):
+            if item.previewImage is not None:
                 xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
                 list_item.setArt(
                     {'thumb': item.previewImage, 'icon': item.previewImage, 'clearlogo': item.previewImage})
