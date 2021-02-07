@@ -198,10 +198,7 @@ class WaipuAPI:
         self.get_token()
         url = "https://recording.waipu.tv/api/recordings"
 
-        recList = []
-        recList.append(recordId)
-
-        payload = {'ids': recList}
+        payload = {'ids': [recordId]}
         headers = self.prepare_headers({'content-type' : 'application/vnd.waipu.pvr-recording-ids-v2+json', 'Accept': 'application/vnd.waipu.recordings-v2+json'})
 
         r = requests.delete(url, data=json.dumps(payload), headers=headers)
