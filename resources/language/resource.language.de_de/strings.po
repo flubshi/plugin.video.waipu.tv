@@ -116,7 +116,7 @@ msgstr "O2 TV"
 
 msgctxt "#32040"
 msgid "Confirm"
-msgstr "Bestätige"
+msgstr "Bestätigen"
 
 msgctxt "#32041"
 msgid "Delete recording"
