@@ -242,7 +242,6 @@ def list_recordings():
 
 @plugin.route('/delete-recordings')
 def delete_recordings():
-
     # get filter for sub-folders
     s_recordId = plugin.args['recording_id'][0]
     # get title
