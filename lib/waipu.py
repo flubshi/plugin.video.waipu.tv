@@ -250,7 +250,7 @@ def delete_recordings():
 
     ok = xbmcgui.Dialog().yesno(xbmcaddon.Addon().getAddonInfo('name'), _T(32040) + ":\n" + _T(32041) + "\n" + s_title + "?")
 
-    if (ok):
+    if ok:
         result = w.deleteRecordings(s_recordId)
         xbmc.log("waipu DELETE " + s_recordId + " result = " + str(result), level=xbmc.LOGDEBUG)
 
