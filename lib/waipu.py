@@ -163,7 +163,7 @@ def list_recordings():
     for item in itemList:
 
         # check for more than 1 recording
-        if(item.count > 1) and (s_filter == "0"):
+        if item.count > 1 and s_filter == "0":
             list_item = xbmcgui.ListItem(label= "[B]" +  item.title +  "[/B]" +  " - " + str(item.count) + " " + _T(32031))
 
             if(item.previewImage is not None):
