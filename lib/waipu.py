@@ -143,7 +143,7 @@ def list_recordings():
         item.count = 1
 
         # check if we are in the overview of recordings
-        if (s_filter == "0"):
+        if s_filter == "0":
             # new item
             if not itemExits(item.assetId, itemList):
                 itemList.append(item)
