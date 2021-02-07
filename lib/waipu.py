@@ -226,7 +226,7 @@ def list_recordings():
             list_item = xbmcgui.ListItem(label=label_dat)
             list_item.setInfo('video', metadata)
 
-            if(item.previewImage is not None):
+            if item.previewImage is not None:
                 xbmc.log("waipu image: " + previewImage, level=xbmc.LOGDEBUG)
                 list_item.setArt(
                     {'thumb': item.previewImage, 'icon': item.previewImage, 'clearlogo': item.previewImage})
