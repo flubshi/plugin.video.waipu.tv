@@ -202,11 +202,7 @@ class WaipuAPI:
         recList.append(recordId)
 
         payload = {'ids': recList}
-        headers = {'User-Agent': self.user_agent,
-                   'Referer' : 'https://play.waipu.tv/aufnahmen',
-                   'content-type' : 'application/vnd.waipu.pvr-recording-ids-v2+json',
-                   'Accept': 'application/vnd.waipu.recordings-v2+json',
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
+        headers = self.prepare_headers({'content-type' : 'application/vnd.waipu.pvr-recording-ids-v2+json', 'Accept': 'application/vnd.waipu.recordings-v2+json'})
 
         r = requests.delete(url, data=json.dumps(payload), headers=headers)
         return r.status_code
