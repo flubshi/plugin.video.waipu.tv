@@ -126,6 +126,10 @@ msgctxt "#32034"
 msgid "Refresh Token"
 msgstr ""
 
+msgctxt "#32035"
+msgid "Access Token"
+msgstr ""
+
 msgctxt "#32036"
 msgid "Device ID"
 msgstr ""

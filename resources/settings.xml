@@ -28,6 +28,7 @@
         <setting id="filter_pictograms" type="bool" label="32010" default="false"/>
         <setting label="32004" type="lsep"/>
         <setting id="refresh_token" type="text" label="32034" default="" />
+        <setting id="access_token" type="text" label="32035" default="" />
         <setting id="device_id_uuid4" type="text" label="32036" default="" />
     </category>
 </settings>
