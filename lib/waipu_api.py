@@ -8,12 +8,13 @@ import xbmc
 class WaipuAPI:
     user_agent = "kodi plugin for waipu.tv (python)"
 
-    def __init__(self, username, password, provider):
+    def __init__(self, username, password, provider, device_id):
         self._auth = None
         self.logged_in = False
         self.__username = username
         self.__password = password
         self.__provider = provider  # 0 = waipu, 1 = O2
+        self.__device_id = device_id
 
     def fetch_token(self):
         if self.__provider == 0:
@@ -23,7 +24,8 @@ class WaipuAPI:
 
     def fetch_waipu_token(self):
         url = "https://auth.waipu.tv/oauth/token"
-        payload = {'username': self.__username, 'password': self.__password, 'grant_type': 'password'}
+        payload = {'username': self.__username, 'password': self.__password,
+                   'grant_type': 'password', 'waipu_device_id': self.__device_id}
         headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Basic YW5kcm9pZENsaWVudDpzdXBlclNlY3JldA=='}
         self._auth = None
