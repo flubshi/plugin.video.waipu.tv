@@ -3,6 +3,7 @@ import time
 import base64
 import json
 import xbmc
+import xbmcaddon
 
 
 class WaipuAPI:
@@ -15,6 +16,13 @@ class WaipuAPI:
         self.__password = password
         self.__provider = provider  # 0 = waipu, 1 = O2
         self.__device_id = device_id
+
+        # setup user_agent
+        ua = xbmc.getUserAgent();
+        addon_id = xbmcaddon.Addon().getAddonInfo("id")
+        addon_version = xbmcaddon.Addon().getAddonInfo("version")
+        self.user_agent = ua.replace(" ", f"_{addon_id}/{addon_version} ", 1)
+
 
     def fetch_token(self):
         if self.__provider == 0:
