@@ -20,7 +20,7 @@ class WaipuAPI:
         ua = xbmc.getUserAgent();
         addon_id = xbmcaddon.Addon().getAddonInfo("id")
         addon_version = xbmcaddon.Addon().getAddonInfo("version")
-        self.user_agent = ua.replace(" ", f"_{addon_id}/{addon_version} ", 1)
+        self.user_agent = ua.replace(" ", f" {addon_id}/{addon_version} ", 1)
 
 
     def is_jwt_valid(self, jwt_str, threshold=0):
