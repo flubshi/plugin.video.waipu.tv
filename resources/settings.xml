@@ -27,8 +27,9 @@
         <setting id="metadata_on_play" type="bool" label="32009" default="false"/>
         <setting id="filter_pictograms" type="bool" label="32010" default="false"/>
         <setting label="32004" type="lsep"/>
-        <setting id="refresh_token" type="text" label="32034" default="" />
-        <setting id="access_token" type="text" label="32035" default="" />
-        <setting id="device_id_uuid4" type="text" label="32036" default="" />
+        <setting id="refresh_token" type="text" label="32034" enable="false" default="" />
+        <setting id="access_token" type="text" label="32035" enable="false" default="" />
+        <setting id="device_id_uuid4" type="text" label="32036" enable="false" default="" />
+        <setting id="settings_hash" type="text" label="32037" enable="false" default="" />
     </category>
 </settings>

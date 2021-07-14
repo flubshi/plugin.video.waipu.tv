@@ -133,3 +133,7 @@ msgstr ""
 msgctxt "#32036"
 msgid "Device ID"
 msgstr ""
+
+msgctxt "#32037"
+msgid "Settings Hash"
+msgstr ""

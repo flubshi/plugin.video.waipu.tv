@@ -133,3 +133,7 @@ msgstr "Access Token"
 msgctxt "#32036"
 msgid "Device ID"
 msgstr "Device ID"
+
+msgctxt "#32037"
+msgid "Settings Hash"
+msgstr "Settings Hash"
