@@ -9,18 +9,13 @@ import xbmcaddon
 class WaipuAPI:
     user_agent = "kodi plugin for waipu.tv (python)"
 
-    def __init__(self, username, password, provider, device_id):
+    def __init__(self, username, password, provider, device_id, user_agent):
         self._access_token = xbmcaddon.Addon().getSetting("access_token")
         self.__username = username
         self.__password = password
         self.__provider = provider  # 0 = waipu, 1 = O2
         self.__device_id = device_id
-
-        # setup user_agent
-        ua = xbmc.getUserAgent();
-        addon_id = xbmcaddon.Addon().getAddonInfo("id")
-        addon_version = xbmcaddon.Addon().getAddonInfo("version")
-        self.user_agent = ua.replace(" ", f" {addon_id}/{addon_version} ", 1)
+        self.user_agent = user_agent
 
 
     def is_jwt_valid(self, jwt_str, threshold=0):

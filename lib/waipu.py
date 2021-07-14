@@ -35,9 +35,14 @@ if not device_id:
 if not username or not password:
     xbmcaddon.Addon().openSettings()
 
-w = WaipuAPI(username, password, provider, device_id)
+# setup user_agent
+user_agent = xbmc.getUserAgent();
+addon_id = xbmcaddon.Addon().getAddonInfo("id")
+addon_version = xbmcaddon.Addon().getAddonInfo("version")
+user_agent = user_agent.replace(" ", f" {addon_id}/{addon_version} ", 1)
 
-user_agent = "kodi plugin for waipu.tv (python)"  # "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+
+w = WaipuAPI(username, password, provider, device_id, user_agent)
 
 itemList = []
 
