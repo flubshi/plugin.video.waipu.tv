@@ -121,3 +121,19 @@ msgstr ""
 msgctxt "#32041"
 msgid "Delete recording"
 msgstr ""
+
+msgctxt "#32034"
+msgid "Refresh Token"
+msgstr "Refresh Token"
+
+msgctxt "#32035"
+msgid "Access Token"
+msgstr "Access Token"
+
+msgctxt "#32036"
+msgid "Device ID"
+msgstr "Device ID"
+
+msgctxt "#32037"
+msgid "Settings Hash"
+msgstr "Settings Hash"

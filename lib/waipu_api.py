@@ -3,36 +3,63 @@ import time
 import base64
 import json
 import xbmc
+import xbmcaddon
 
 
 class WaipuAPI:
     user_agent = "kodi plugin for waipu.tv (python)"
 
-    def __init__(self, username, password, provider):
-        self._auth = None
-        self.logged_in = False
+    def __init__(self, username, password, provider, device_id, user_agent):
+        self._access_token = xbmcaddon.Addon().getSetting("access_token")
         self.__username = username
         self.__password = password
         self.__provider = provider  # 0 = waipu, 1 = O2
+        self.__device_id = device_id
+        self.user_agent = user_agent
 
-    def fetch_token(self):
-        if self.__provider == 0:
-            return self.fetch_waipu_token()
-        else:
-            return self.fetch_o2_token()
+
+    def is_jwt_valid(self, jwt_str, threshold=0):
+        jwt = self.decode_token(jwt_str)
+        exp = int(jwt["exp"])
+        return time.time() < (exp - threshold)
+
 
     def fetch_waipu_token(self):
+        # assume access token expired -> check refresh_token
+        refresh_token = xbmcaddon.Addon().getSetting("refresh_token")
+        if refresh_token and self.is_jwt_valid(refresh_token):
+            # refresh is valid, lets use it
+            payload = {'refresh_token': refresh_token,
+                       'grant_type': 'refresh_token',
+                       'waipu_device_id': self.__device_id}
+        else:
+            # use pw grant
+            payload = {'username': self.__username,
+                       'password': self.__password,
+                       'grant_type': 'password',
+                       'waipu_device_id': self.__device_id}
+
         url = "https://auth.waipu.tv/oauth/token"
-        payload = {'username': self.__username, 'password': self.__password, 'grant_type': 'password'}
         headers = {'User-Agent': self.user_agent,
                    'Authorization': 'Basic YW5kcm9pZENsaWVudDpzdXBlclNlY3JldA=='}
-        self._auth = None
-        r = requests.post(url, data=payload, headers=headers)
+
+        try:
+            r = requests.post(url, data=payload, headers=headers)
+        except requests.exceptions.ConnectionError as e:
+            xbmc.log("Error while fetching waipu token - No HTTP connection?", level=xbmc.LOGERROR)
+
         if r.status_code == 200:
-            self._auth = r.json()
-            self.logged_in = True
-            self._auth["expires"] = time.time() + self._auth["expires_in"]
-        return r.status_code
+            jwt = r.json()
+            self._access_token = jwt["access_token"]
+            xbmcaddon.Addon().setSetting("access_token", self._access_token)
+            if "refresh_token" in jwt:
+                xbmcaddon.Addon().setSetting("refresh_token", jwt["refresh_token"])
+            return self._access_token
+        else:
+            # TODO add error handling
+            xbmc.log("Error while fetching waipu token - HTTP code: " + r.status_code, level=xbmc.LOGERROR)
+            raise Exception("Error: no valid access token")
+        return ""
 
     def fetch_o2_token(self):
         import mechanize
@@ -65,27 +92,25 @@ class WaipuAPI:
             if cookie.name == "user_token":
                 token = str(cookie.value).strip()
                 decoded_token = self.decode_token(token)
-                self._auth = {'access_token': token, "expires": decoded_token["exp"]}
+                self._access_token = token
+                xbmcaddon.Addon().setSetting("access_token", token)
 
-                self.logged_in = True
                 return 200
         return -1
 
     def prepare_headers(self, additional_headers=dict()):
         headers = {'User-Agent': self.user_agent,
-                   'Authorization': 'Bearer ' + self._auth['access_token']}
+                   'Authorization': 'Bearer ' + self.get_token()}
         headers.update(additional_headers)
         return headers
 
     def get_token(self):
-        if self._auth is None or self._auth["expires"] <= time.time():
-            code = self.fetch_token()
-            if code == 401:
-                raise Exception("Login: Invalid user/password!")
-            elif code != 200:
-                raise Exception("Can't login, Code=" + str(code))
-        # TODO: renew token
-        return self._auth['access_token']
+        if not self._access_token or not self.is_jwt_valid(self._access_token):
+            if self.__provider == 0:
+                return self.fetch_waipu_token()
+            else:
+                return self.fetch_o2_token()
+        return self._access_token
 
     def decode_token(self, token):
         jwtheader, jwtpayload, jwtsignature = token.split(".")

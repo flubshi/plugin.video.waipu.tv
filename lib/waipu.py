@@ -13,6 +13,7 @@ import xbmcaddon
 import inputstreamhelper
 import time
 from dateutil import parser
+from hashlib import sha256
 
 class ItemClass(object):
     pass
@@ -23,13 +24,25 @@ username = xbmcaddon.Addon().getSetting("username")
 password = xbmcaddon.Addon().getSetting("password")
 provider = int(xbmcaddon.Addon().getSetting("provider_select"))
 
+device_id = xbmcaddon.Addon().getSetting("device_id_uuid4")
+if not device_id:
+    import uuid
+    device_id = str(uuid.uuid4())
+    xbmcaddon.Addon().setSetting("device_id_uuid4", device_id)
+
+
 # open settings,
 if not username or not password:
     xbmcaddon.Addon().openSettings()
 
-w = WaipuAPI(username, password, provider)
+# setup user_agent
+user_agent = xbmc.getUserAgent();
+addon_id = xbmcaddon.Addon().getAddonInfo("id")
+addon_version = xbmcaddon.Addon().getAddonInfo("version")
+user_agent = user_agent.replace(" ", f" {addon_id}/{addon_version} ", 1)
 
-user_agent = "kodi plugin for waipu.tv (python)"  # "waipu-2.29.3-370e0a4-9452 (Android 8.1.0)"
+
+w = WaipuAPI(username, password, provider, device_id, user_agent)
 
 itemList = []
 
@@ -45,10 +58,20 @@ def _T(string_id):
 
 def load_acc_details(force=False):
     last_check = xbmcplugin.getSetting(plugin.handle, "accinfo_lastcheck")
-    info_acc = xbmcplugin.getSetting(plugin.handle, "accinfo_account")
     user = xbmcplugin.getSetting(plugin.handle, "username")
+    settings_password = xbmcplugin.getSetting(plugin.handle, "password")
+    provider_select = xbmcplugin.getSetting(plugin.handle, "provider_select")
+    settings_hash = xbmcplugin.getSetting(plugin.handle, "settings_hash")
 
-    if force or info_acc != user or (int(time.time()) - int(last_check)) > 15 * 60:
+    hash_calculated = sha256(f"{user}|{settings_password}|{provider_select}".encode("utf-8")).hexdigest()
+
+    if settings_hash != hash_calculated:
+        # creds have changed -> reset tokens
+        xbmcaddon.Addon().setSetting("refresh_token", "")
+        xbmcaddon.Addon().setSetting("access_token", "")
+        xbmcaddon.Addon().setSetting("settings_hash", hash_calculated)
+
+    if force or settings_hash != hash_calculated or (int(time.time()) - int(last_check)) > 15 * 60:
         # load acc details
         acc_details = w.get_account_details()
         xbmc.log("waipu accdetails: " + str(acc_details), level=xbmc.LOGDEBUG)
