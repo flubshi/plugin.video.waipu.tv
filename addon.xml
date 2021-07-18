@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <addon id="plugin.video.waipu.tv" name="Waipu.tv / O2 TV" version="0.10.1" provider-name="flubshi, MiRo">
 <requires>
-  <import addon="xbmc.python" version="3.0.0"/>
+  <import addon="xbmc.python" version="2.25.0"/>
   <import addon="script.module.requests" version="2.12.4"/>
   <import addon="script.module.inputstreamhelper" version="0.5.2"/>
   <import addon="script.module.dateutil" version="2.7.3" />
@@ -29,7 +29,7 @@
     <screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
   </assets>
   <news>
-- 0.10.1 Make addon python2 backwards compatible
+- 0.10.1 Make addon python2 backwards compatible; backport to Leia/Krypton
 - 0.10.0 Improve session handling; implement device ID; set correct user agent
 - 0.9.1 Fix import in O2 login
 - 0.9.0 add folder structure and delete of recordings (thanks @mking2203)
