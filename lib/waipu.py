@@ -36,10 +36,10 @@ if not username or not password:
     xbmcaddon.Addon().openSettings()
 
 # setup user_agent
-user_agent = xbmc.getUserAgent();
+user_agent = xbmc.getUserAgent()
 addon_id = xbmcaddon.Addon().getAddonInfo("id")
 addon_version = xbmcaddon.Addon().getAddonInfo("version")
-user_agent = user_agent.replace(" ", f" {addon_id}/{addon_version} ", 1)
+user_agent = user_agent.replace(" ", " {}/{} ".format(addon_id, addon_version), 1)
 
 
 w = WaipuAPI(username, password, provider, device_id, user_agent)
@@ -63,7 +63,7 @@ def load_acc_details(force=False):
     provider_select = xbmcplugin.getSetting(plugin.handle, "provider_select")
     settings_hash = xbmcplugin.getSetting(plugin.handle, "settings_hash")
 
-    hash_calculated = sha256(f"{user}|{settings_password}|{provider_select}".encode("utf-8")).hexdigest()
+    hash_calculated = sha256("{}|{}|{}".format(user, settings_password, provider_select).encode("utf-8")).hexdigest()
 
     if settings_hash != hash_calculated:
         # creds have changed -> reset tokens
