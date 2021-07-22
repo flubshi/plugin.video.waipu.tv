@@ -32,12 +32,14 @@ class WaipuAPI:
             payload = {'refresh_token': refresh_token,
                        'grant_type': 'refresh_token',
                        'waipu_device_id': self.__device_id}
+            xbmc.log("Fetch access token by using refresh token", level=xbmc.LOGDEBUG)
         else:
             # use pw grant
             payload = {'username': self.__username,
                        'password': self.__password,
                        'grant_type': 'password',
                        'waipu_device_id': self.__device_id}
+            xbmc.log("Fetch access token by using password grant", level=xbmc.LOGDEBUG)
 
         url = "https://auth.waipu.tv/oauth/token"
         headers = {'User-Agent': self.user_agent,
@@ -57,7 +59,7 @@ class WaipuAPI:
             return self._access_token
         else:
             # TODO add error handling
-            xbmc.log("Error while fetching waipu token - HTTP code: " + r.status_code, level=xbmc.LOGERROR)
+            xbmc.log("Error while fetching waipu token - HTTP code: " + str(r.status_code), level=xbmc.LOGERROR)
             raise Exception("Error: no valid access token")
         return ""
 
