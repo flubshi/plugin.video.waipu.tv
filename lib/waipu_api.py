@@ -66,11 +66,11 @@ class WaipuAPI:
     def fetch_o2_token(self):
         import mechanize
         try:
-            import http.cookiejar as cookie
+            import http.cookiejar as cookielib
         except ImportError:
-            import cookie
+            import cookielib
         br = mechanize.Browser()
-        cj = cookie.CookieJar()
+        cj = cookielib.CookieJar()
         br.set_cookiejar(cj)
         br.set_handle_equiv(False)
         br.set_handle_robots(False)

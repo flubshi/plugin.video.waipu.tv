@@ -308,7 +308,7 @@ def play_inputstream(url, metadata=dict(), art=dict()):
     listitem.setMimeType('application/xml+dash')
     listitem.setProperty(is_helper.inputstream_addon + ".license_type", "com.widevine.alpha")
     listitem.setProperty(is_helper.inputstream_addon + ".manifest_type", "mpd")
-    listitem.setProperty('inputstream', is_helper.inputstream_addon)
+    listitem.setProperty('inputstreamaddon', is_helper.inputstream_addon)
 
     # License update, to be tested... listitem.setProperty(is_helper.inputstream_addon + ".media_renewal_url",
     # get_url(action='renew_token', playouturl=playouturl))
